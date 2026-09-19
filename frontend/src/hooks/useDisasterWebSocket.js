@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { playEmergencySiren, playTacticalBeep, playAckChime } from '../utils/audioSiren';
 
-// Default initial nodes (Baseline Target: Wildfire + Landslide Risk Zone - Node 1 with 6 Sensors)
+// Default initial nodes (Fire OFF, Smoke Normal 18 PPM, Vibration Normal 0 Hz, Rain 5mm, Soil 92%)
 const INITIAL_NODES = {
   "NODE_01": {
     id: "NODE_01",
@@ -10,37 +10,37 @@ const INITIAL_NODES = {
     district: "Rayagada, Odisha",
     latitude: 19.1950,
     longitude: 83.3950,
-    riskLevel: "EMERGENCY",
-    riskScore: 88.5,
-    disasterType: "WILDFIRE / LANDSLIDE",
+    riskLevel: "NORMAL",
+    riskScore: 28.5,
+    disasterType: "SOIL_SATURATION_MONITORING",
     rainMm: 5,
     rainPercent: 5,
     rain: 5,
     soilMoisture: 92,
     soil: 92,
-    smokeLevel: 320,
-    smoke: 320,
-    flameDetected: true,
-    flame_detected: true,
-    flame: 1,
-    vibration: true,
-    vibrationFreq: 380,
-    vibrationHz: 380,
-    temp: 38.5,
-    temperature: 38.5,
-    humidity: 94,
+    smokeLevel: 18,
+    smoke: 18,
+    flameDetected: false,
+    flame_detected: false,
+    flame: 0,
+    vibration: false,
+    vibrationFreq: 0,
+    vibrationHz: 0,
+    temp: 26.5,
+    temperature: 26.5,
+    humidity: 85,
     hopCount: 1,
     rssi: -65,
     lastSeen: Date.now(),
-    risk: { flood: "MEDIUM", landslide: "CRITICAL", fire: "CRITICAL", cyclone: "LOW" },
+    risk: { flood: "LOW", landslide: "HIGH", fire: "LOW", cyclone: "LOW" },
     status: "ONLINE"
   }
 };
 
 const INITIAL_HISTORY = [
-  { time: new Date(Date.now() - 15000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 4.8, soilMoisture: 91.5, smokeLevel: 315, flameDetected: true, vibration: 1, vibrationFreq: 375, temp: 38.2, humidity: 93.5, rssi: -65, riskScore: 88.0, nodeId: 'NODE_01' },
-  { time: new Date(Date.now() - 10000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 5.1, soilMoisture: 92.0, smokeLevel: 322, flameDetected: true, vibration: 1, vibrationFreq: 382, temp: 38.5, humidity: 94.0, rssi: -64, riskScore: 88.5, nodeId: 'NODE_01' },
-  { time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 5.0, soilMoisture: 92.0, smokeLevel: 320, flameDetected: true, vibration: 1, vibrationFreq: 380, temp: 38.5, humidity: 94.0, rssi: -65, riskScore: 88.5, nodeId: 'NODE_01' }
+  { time: new Date(Date.now() - 15000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 4.8, soilMoisture: 91.5, smokeLevel: 17, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.3, humidity: 84.5, rssi: -65, riskScore: 28.0, nodeId: 'NODE_01' },
+  { time: new Date(Date.now() - 10000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 5.1, soilMoisture: 92.0, smokeLevel: 19, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.5, humidity: 85.0, rssi: -64, riskScore: 28.5, nodeId: 'NODE_01' },
+  { time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 5.0, soilMoisture: 92.0, smokeLevel: 18, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.5, humidity: 85.0, rssi: -65, riskScore: 28.5, nodeId: 'NODE_01' }
 ];
 
 /**
@@ -644,18 +644,16 @@ export function useDisasterWebSocket() {
         const current = prev["NODE_01"] || INITIAL_NODES["NODE_01"];
         const dRain = (Math.random() * 0.6 - 0.3);
         const dSoil = (Math.random() * 0.8 - 0.4);
-        const dSmoke = Math.floor(Math.random() * 7 - 3);
-        const dVibFreq = Math.floor(Math.random() * 11 - 5);
-        const dTemp = (Math.random() * 0.4 - 0.2);
+        const dSmoke = Math.floor(Math.random() * 5 - 2);
+        const dTemp = (Math.random() * 0.3 - 0.15);
         const dHum = (Math.random() * 0.6 - 0.3);
 
         const newRain = Number(Math.max(3.0, Math.min(8.0, (current.rainMm || 5.0) + dRain)).toFixed(1));
         const newSoil = Number(Math.max(89.0, Math.min(95.0, (current.soilMoisture || 92.0) + dSoil)).toFixed(1));
-        const newSmoke = Math.max(305, Math.min(338, (current.smokeLevel || 320) + dSmoke));
-        const newVibFreq = Math.max(360, Math.min(405, (current.vibrationFreq || 380) + dVibFreq));
-        const newTemp = Number(Math.max(37.5, Math.min(39.5, (current.temp || 38.5) + dTemp)).toFixed(1));
-        const newHum = Number(Math.max(91.0, Math.min(97.0, (current.humidity || 94.0) + dHum)).toFixed(1));
-        const newRisk = Number(Math.max(82.0, Math.min(96.0, 88.5 + (Math.random() * 2.0 - 1.0))).toFixed(1));
+        const newSmoke = Math.max(14, Math.min(24, (current.smokeLevel || 18) + dSmoke));
+        const newTemp = Number(Math.max(25.5, Math.min(27.5, (current.temp || 26.5) + dTemp)).toFixed(1));
+        const newHum = Number(Math.max(82.0, Math.min(88.0, (current.humidity || 85.0) + dHum)).toFixed(1));
+        const newRisk = Number(Math.max(20.0, Math.min(36.0, 28.5 + (Math.random() * 1.5 - 0.75))).toFixed(1));
 
         const updated = {
           ...current,
@@ -665,18 +663,18 @@ export function useDisasterWebSocket() {
           soil: newSoil,
           smokeLevel: newSmoke,
           smoke: newSmoke,
-          flameDetected: true,
-          flame_detected: true,
-          flame: 1,
-          vibration: true,
-          vibrationFreq: newVibFreq,
-          vibrationHz: newVibFreq,
+          flameDetected: false,
+          flame_detected: false,
+          flame: 0,
+          vibration: false,
+          vibrationFreq: 0,
+          vibrationHz: 0,
           temp: newTemp,
           temperature: newTemp,
           humidity: newHum,
           riskScore: newRisk,
-          riskLevel: 'EMERGENCY',
-          disasterType: 'WILDFIRE / LANDSLIDE',
+          riskLevel: 'NORMAL',
+          disasterType: 'SOIL_SATURATION_MONITORING',
           lastSeen: Date.now()
         };
 
@@ -688,11 +686,11 @@ export function useDisasterWebSocket() {
             rain: newRain,
             soilMoisture: newSoil,
             smokeLevel: newSmoke,
-            flameDetected: true,
+            flameDetected: false,
             temp: newTemp,
             humidity: newHum,
-            vibration: 1,
-            vibrationFreq: newVibFreq,
+            vibration: 0,
+            vibrationFreq: 0,
             rssi: current.rssi || -65,
             riskScore: newRisk,
             nodeId: 'NODE_01'

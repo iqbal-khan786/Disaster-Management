@@ -52,7 +52,7 @@ except ImportError:
 
 CONNECTED_CLIENTS = set()
 
-# Live State of Monitored Village (Node 1 with 6 Sensors Baseline: Wildfire + Landslide Risk Zone)
+# Live State of Monitored Village (Node 1 with 6 Sensors: Fire OFF, Smoke Normal, Vibration Normal)
 LIVE_NODES = {
     "NODE_01": {
         "id": "NODE_01",
@@ -61,24 +61,24 @@ LIVE_NODES = {
         "district": "Rayagada, Odisha",
         "latitude": 19.1950,
         "longitude": 83.3950,
-        "riskLevel": "EMERGENCY",
-        "disasterType": "WILDFIRE / LANDSLIDE",
-        "riskScore": 88.5,
+        "riskLevel": "NORMAL",
+        "disasterType": "SOIL_SATURATION_MONITORING",
+        "riskScore": 28.5,
         "rainMm": 5,
         "rain": 5,
         "soilMoisture": 92,
         "soil": 92,
-        "smokeLevel": 320,
-        "smoke": 320,
-        "flameDetected": True,
-        "flame_detected": True,
-        "flame": 1,
-        "vibration": True,
-        "vibrationFreq": 380,
-        "vibrationHz": 380,
-        "temperature": 38.5,
-        "temp": 38.5,
-        "humidity": 94,
+        "smokeLevel": 18,
+        "smoke": 18,
+        "flameDetected": False,
+        "flame_detected": False,
+        "flame": 0,
+        "vibration": False,
+        "vibrationFreq": 0,
+        "vibrationHz": 0,
+        "temperature": 26.5,
+        "temp": 26.5,
+        "humidity": 85,
         "hopCount": 1,
         "rssi": -65,
         "status": "ONLINE",
@@ -376,36 +376,36 @@ async def read_serial_loop(port: str, baud: int):
             await asyncio.sleep(0.01)
 
 def apply_live_fluctuations(node):
-    """Apply natural physical fluctuations around target values: Rain: 5mm, Soil: 92%, Smoke: 320PPM, Flame: 1, Vib: 380Hz, Temp: 38.5C, Hum: 94%"""
+    """Apply natural physical fluctuations: Rain: ~5mm, Soil: ~92%, Smoke: ~18PPM (Normal), Flame: 0 (OFF), Vib: 0Hz (Normal), Temp: ~26.5C, Hum: ~85%"""
     node["rainMm"] = round(max(3.0, min(8.0, node.get("rainMm", 5.0) + random.uniform(-0.3, 0.3))), 1)
     node["rain"] = node["rainMm"]
     node["soilMoisture"] = round(max(89.0, min(95.0, node.get("soilMoisture", 92.0) + random.uniform(-0.4, 0.4))), 1)
     node["soil"] = node["soilMoisture"]
-    node["smokeLevel"] = int(max(305, min(338, node.get("smokeLevel", 320) + random.randint(-4, 4))))
+    node["smokeLevel"] = int(max(14, min(24, node.get("smokeLevel", 18) + random.randint(-2, 2))))
     node["smoke"] = node["smokeLevel"]
-    node["flameDetected"] = True
-    node["flame_detected"] = True
-    node["flame"] = 1
-    node["vibration"] = True
-    node["vibrationFreq"] = int(max(360, min(405, node.get("vibrationFreq", 380) + random.randint(-6, 6))))
-    node["vibrationHz"] = node["vibrationFreq"]
-    node["temperature"] = round(max(37.6, min(39.4, node.get("temperature", 38.5) + random.uniform(-0.15, 0.15))), 1)
+    node["flameDetected"] = False
+    node["flame_detected"] = False
+    node["flame"] = 0
+    node["vibration"] = False
+    node["vibrationFreq"] = 0
+    node["vibrationHz"] = 0
+    node["temperature"] = round(max(25.5, min(27.5, node.get("temperature", 26.5) + random.uniform(-0.15, 0.15))), 1)
     node["temp"] = node["temperature"]
-    node["humidity"] = round(max(91.5, min(96.5, node.get("humidity", 94.0) + random.uniform(-0.3, 0.3))), 1)
-    node["riskScore"] = round(min(100.0, max(82.0, 88.5 + random.uniform(-1.0, 1.0))), 1)
-    node["riskLevel"] = "EMERGENCY"
-    node["disasterType"] = "WILDFIRE / LANDSLIDE"
+    node["humidity"] = round(max(82.0, min(88.0, node.get("humidity", 85.0) + random.uniform(-0.3, 0.3))), 1)
+    node["riskScore"] = round(min(50.0, max(20.0, 28.5 + random.uniform(-1.0, 1.0))), 1)
+    node["riskLevel"] = "NORMAL"
+    node["disasterType"] = "SOIL_SATURATION_MONITORING"
     node["lastSeen"] = int(time.time() * 1000)
     return node
 
 async def run_simulation_loop():
     """Periodic simulation and live broadcast loop."""
-    print("[Simulator] ⚡ Live 6-Sensors Telemetry Stream Active (Rain: 5mm, Soil: 92%, Smoke: 320PPM, Flame: 1, Vib: 380Hz, Temp: 38.5°C, Hum: 94%)...")
+    print("[Simulator] ⚡ Live 6-Sensors Telemetry Stream Active (Rain: 5mm, Soil: 92%, Smoke: 18PPM [Normal], Flame: OFF, Vib: 0Hz [Normal], Temp: 26.5°C, Hum: 85%)...")
     while True:
         await asyncio.sleep(2.5)
         node1 = apply_live_fluctuations(LIVE_NODES["NODE_01"])
         payload = json.dumps(node1)
-        print(f"[LIVE -> WS] 📡 {node1['id']} | Rain: {node1['rainMm']}mm | Soil: {node1['soilMoisture']}% | Smoke: {node1['smokeLevel']} PPM | Flame: Active | Vib: {node1['vibrationFreq']}Hz | Temp: {node1['temp']}°C | Hum: {node1['humidity']}% | Risk: {node1['riskLevel']} ({node1['riskScore']}/100)")
+        print(f"[LIVE -> WS] 📡 {node1['id']} | Rain: {node1['rainMm']}mm | Soil: {node1['soilMoisture']}% | Smoke: {node1['smokeLevel']} PPM (Normal) | Flame: CLEAR | Vib: 0Hz (Normal) | Temp: {node1['temp']}°C | Hum: {node1['humidity']}% | Risk: {node1['riskLevel']} ({node1['riskScore']}/100)")
         await broadcast_message(payload)
 
 async def main():

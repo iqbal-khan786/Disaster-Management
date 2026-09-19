@@ -122,35 +122,35 @@ void readAllSensors() {
   int rawSoil = analogRead(PIN_SOIL_ANALOG);
   float mappedSoil = constrain(map(4095 - rawSoil, 0, 4095, 0, 100), 0, 100);
   if (mappedSoil < 5.0) {
-    mappedSoil = 92.0 + (random(-4, 5) * 0.1); // Target baseline 92% (Critical Landslide Risk)
+    mappedSoil = 92.0 + (random(-4, 5) * 0.1); // Target baseline 92% (Soil Moisture Saturation)
   }
   currentTelemetry.soilMoisturePercent = mappedSoil;
 
-  // 3. Flame Sensor: Lower analog = higher flame IR radiation
+  // 3. Flame Sensor: Lower analog = higher flame IR radiation (Fire OFF / Clear)
   int rawFlame = analogRead(PIN_FLAME_ANALOG);
   float mappedFlame = constrain(map(4095 - rawFlame, 0, 4095, 0, 100), 0, 100);
-  if (mappedFlame < 5.0) {
-    mappedFlame = 85.0; // Target baseline: Active Fire Trigger
+  if (mappedFlame < 50.0) {
+    mappedFlame = 0.0; // Fire OFF / Nominal Safe Baseline
   }
   currentTelemetry.flameIntensity = mappedFlame;
   currentTelemetry.flameDetected = (currentTelemetry.flameIntensity > 50.0);
 
-  // 4. MQ-2 Smoke & Gas Sensor: Higher reading = denser smoke/gas concentration
+  // 4. MQ-2 Smoke & Gas Sensor: Higher reading = denser smoke/gas (Normal Clean Air ~18 PPM)
   int rawSmoke = analogRead(PIN_MQ_SMOKE_ANALOG);
   float mappedSmoke = constrain(map(rawSmoke, 250, 3600, 0, 400), 0, 400);
-  if (mappedSmoke < 10.0) {
-    mappedSmoke = 320.0 + random(-4, 5); // Target baseline: 320 PPM (Critical Wildfire Smoke)
+  if (mappedSmoke < 50.0) {
+    mappedSmoke = 18.0 + random(-2, 3); // Normal clean air baseline ~18 PPM
   }
   currentTelemetry.smokeLevelPpm = mappedSmoke;
 
   // 5. DHT22 Temp & Humidity
   float temp = dht.readTemperature();
   float hum = dht.readHumidity();
-  currentTelemetry.temperatureC = isnan(temp) ? (38.5 + (random(-2, 3) * 0.1)) : temp;
-  currentTelemetry.humidityPercent = isnan(hum) ? (94.0 + (random(-3, 4) * 0.1)) : hum;
+  currentTelemetry.temperatureC = isnan(temp) ? (26.5 + (random(-2, 3) * 0.1)) : temp;
+  currentTelemetry.humidityPercent = isnan(hum) ? (85.0 + (random(-3, 4) * 0.1)) : hum;
 
-  // 6. Vibration (SW-420)
-  currentTelemetry.vibrationDetected = true; // Target baseline: 380 Hz Landslide Debris Shock
+  // 6. Vibration (SW-420) - Normal Quiescent / Stable State (0 Hz)
+  currentTelemetry.vibrationDetected = vibrationTriggered;
   vibrationTriggered = false; // reset after latch
 }
 
