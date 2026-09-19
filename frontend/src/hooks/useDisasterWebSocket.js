@@ -112,8 +112,8 @@ function parseAnyIncomingData(rawInput) {
         else if (p.startsWith('RAIN:')) rain = parseFloat(p.replace('RAIN:', '')) || 0;
         else if (p.startsWith('SOIL:')) soil = parseFloat(p.replace('SOIL:', '')) || 0;
         else if (p.startsWith('SMK:')) smoke = parseFloat(p.replace('SMK:', '')) || 0;
-        else if (p.startsWith('FLM:')) flm = p.replace('FLM:', '').trim() in ('1', 'true', 'TRUE', 'DETECTED');
-        else if (p.startsWith('VIB:')) vib = p.replace('VIB:', '').trim() in ('1', 'true', 'TRUE', 'DETECTED');
+        else if (p.startsWith('FLM:')) flm = ['1', 'true', 'TRUE', 'DETECTED'].includes(p.replace('FLM:', '').trim());
+        else if (p.startsWith('VIB:')) vib = ['1', 'true', 'TRUE', 'DETECTED'].includes(p.replace('VIB:', '').trim());
         else if (p.startsWith('TEMP:')) temp = parseFloat(p.replace('TEMP:', '')) || 24.5;
         else if (p.startsWith('HUM:')) hum = parseFloat(p.replace('HUM:', '')) || 75.0;
       }

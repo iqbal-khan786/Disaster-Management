@@ -328,19 +328,19 @@ export function OverviewView({
             </div>
           </div>
 
-          {/* Risk Card 3: Fire & Smoke Risk */}
+          {/* Risk Card 3: Smoke & Air Quality */}
           <div className="glass-panel" style={{
             padding: '16px',
             borderLeft: `4px solid ${getRiskColor(selectedNode.risk?.fire || 'LOW')}`
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ padding: '6px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                <div style={{ padding: '6px', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
                   <Flame size={18} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#f8fafc', margin: 0 }}>Fire & Smoke</h3>
-                  <span style={{ fontSize: '10px', color: '#94a3b8' }}>Flame IR & MQ-2 Gas Sensor</span>
+                  <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#f8fafc', margin: 0 }}>Smoke & Air Quality</h3>
+                  <span style={{ fontSize: '10px', color: '#94a3b8' }}>MQ-2 Gas Sensor & Flame IR (Nominal)</span>
                 </div>
               </div>
               <span style={{
@@ -373,14 +373,14 @@ export function OverviewView({
 
             <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '8px', borderRadius: '6px', fontSize: '10px', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '3px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Flame Sensor:</span>
-                <span style={{ color: selectedNode.flameDetected ? '#ef4444' : '#10b981', fontWeight: 700 }}>
-                  {selectedNode.flameDetected ? 'FLAME TRIP (CRITICAL)' : 'NONE'}
+                <span>Flame IR Status:</span>
+                <span style={{ color: '#10b981', fontWeight: 700 }}>
+                  OFF / CLEAR (0)
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Ambient Temp:</span>
-                <span style={{ color: '#f43f5e', fontWeight: 700 }}>{selectedNode.temp || 24.5}°C</span>
+                <span style={{ color: '#10b981', fontWeight: 700 }}>{selectedNode.temp || 26.5}°C</span>
               </div>
             </div>
           </div>
