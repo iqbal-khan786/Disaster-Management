@@ -38,12 +38,10 @@ const TILE_LAYERS = {
 
 const SATELLITE_LABELS_URL = 'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
 
-// Rayagada Sectors in Sequential Hop Order (V1 -> V2 -> HQ)
+// Rayagada Sectors (Village 1 Live Hardware Node ➔ District Command HQ)
 const RAYAGADA_SECTORS = [
-  { name: 'Full Mesh Corridor (V1 ➔ V2 ➔ HQ)', lat: 19.2000, lng: 83.3750, zoom: 12 },
-  { name: 'Village 1: Kashipur Valley (Flood Zone)', lat: 19.2400, lng: 83.3300, zoom: 14 },
-  { name: 'Village 2: Kolnara Ridge (Highland Relay)', lat: 19.1950, lng: 83.3950, zoom: 14 },
-  { name: 'Headquarter: Rayagada DEOC Base Hub', lat: 19.1670, lng: 83.4160, zoom: 15 }
+  { name: 'Village 1: Kashipur Valley (⚡ Live ESP32 Hardware Node)', lat: 19.1950, lng: 83.3950, zoom: 14 },
+  { name: 'District Headquarter: Rayagada DEOC Base Hub', lat: 19.1670, lng: 83.4160, zoom: 15 }
 ];
 
 // Nagavali River Winding Course Path Coordinates (Realistic Hydrological Waterway)
@@ -500,12 +498,12 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
       }
     });
 
-    // Draw Animated LoRa Mesh Hop Path (V1 -> V2 -> HQ)
-    if (nodes['V1'] && nodes['V2']) {
+    // Draw Animated Direct Telemetry Link (Node 1 ➔ District HQ)
+    const node1 = nodes['NODE_01'] || nodes['V1'] || Object.values(nodes)[0];
+    if (node1) {
       const hopPath = [
-        [nodes['V1'].latitude, nodes['V1'].longitude], // Start: Village 1 (Kashipur)
-        [nodes['V2'].latitude, nodes['V2'].longitude], // Hop 1: Village 2 Relay (Kolnara)
-        [19.1670, 83.4160]                             // Hop 2: District Headquarter (Rayagada)
+        [node1.latitude, node1.longitude], // Start: Village 1 (Kashipur Live Node)
+        [19.1670, 83.4160]                  // Destination: District Headquarter (Rayagada DEOC)
       ];
 
       if (!hopPolylineRef.current) {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { playEmergencySiren, playTacticalBeep, playAckChime } from '../utils/audioSiren';
 
-// Default initial nodes (Clean Real Hardware Baseline - 0s until real live packets arrive)
+// Default initial nodes (Clean Real Hardware Baseline - ONLY Village 1 Node 1)
 const INITIAL_NODES = {
   "NODE_01": {
     id: "NODE_01",
@@ -27,62 +27,6 @@ const INITIAL_NODES = {
     batteryVoltage: 3.04,
     hopCount: 1,
     rssi: -65,
-    lastSeen: Date.now(),
-    risk: { flood: "LOW", landslide: "LOW", fire: "LOW", cyclone: "LOW" },
-    status: "ONLINE"
-  },
-  "NODE_02": {
-    id: "NODE_02",
-    name: "Village 2: Kolnara Ridge",
-    village: "Kolnara Ridge",
-    district: "Rayagada, Odisha",
-    latitude: 19.1950,
-    longitude: 83.3950,
-    riskLevel: "NORMAL",
-    riskScore: 0.0,
-    disasterType: "NONE",
-    waterLevelCm: 0,
-    waterLevelM: 0.0,
-    rainMm: 0,
-    rainPercent: 0,
-    soilMoisture: 0,
-    temp: 24.0,
-    humidity: 60,
-    smokeLevel: 0,
-    flameDetected: false,
-    vibration: false,
-    battery: 90,
-    batteryVoltage: 4.10,
-    hopCount: 2,
-    rssi: -72,
-    lastSeen: Date.now(),
-    risk: { flood: "LOW", landslide: "LOW", fire: "LOW", cyclone: "LOW" },
-    status: "ONLINE"
-  },
-  "NODE_03": {
-    id: "NODE_03",
-    name: "Village 3: Kumbhikota Highland",
-    village: "Kumbhikota Highland",
-    district: "Rayagada, Odisha",
-    latitude: 19.1450,
-    longitude: 83.4250,
-    riskLevel: "NORMAL",
-    riskScore: 0.0,
-    disasterType: "NONE",
-    waterLevelCm: 0,
-    waterLevelM: 0.0,
-    rainMm: 0,
-    rainPercent: 0,
-    soilMoisture: 0,
-    temp: 25.0,
-    humidity: 58,
-    smokeLevel: 0,
-    flameDetected: false,
-    vibration: false,
-    battery: 95,
-    batteryVoltage: 4.15,
-    hopCount: 1,
-    rssi: -68,
     lastSeen: Date.now(),
     risk: { flood: "LOW", landslide: "LOW", fire: "LOW", cyclone: "LOW" },
     status: "ONLINE"
@@ -254,13 +198,12 @@ export function useDisasterWebSocket() {
     ]);
   }, []);
 
-  // Standardize incoming node packet format
+  // Standardize incoming node packet format (Node 1 Only)
   const normalizeNodeData = useCallback((raw) => {
     if (!raw) return null;
-    const id = raw.node_id || raw.id || "NODE_01";
-    const mappedId = id === "V1" ? "NODE_01" : id === "V2" ? "NODE_02" : id === "V3" ? "NODE_03" : id;
+    const mappedId = "NODE_01";
     
-    const existing = nodes[mappedId] || INITIAL_NODES[mappedId] || INITIAL_NODES["NODE_01"];
+    const existing = nodes["NODE_01"] || INITIAL_NODES["NODE_01"];
     
     // Explicitly parse 100% real physical sensor values
     let waterCm = 0;

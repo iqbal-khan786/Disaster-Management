@@ -52,7 +52,7 @@ except ImportError:
 
 CONNECTED_CLIENTS = set()
 
-# Live State of Monitored Villages (100% Real Hardware Baseline)
+# Live State of Monitored Villages (100% Real Hardware Baseline - ONLY Node 1)
 LIVE_NODES = {
     "NODE_01": {
         "id": "NODE_01",
@@ -79,32 +79,6 @@ LIVE_NODES = {
         "rssi": -65,
         "status": "ONLINE",
         "lastSeen": int(time.time() * 1000)
-    },
-    "NODE_02": {
-        "id": "NODE_02",
-        "name": "Village 2: Kolnara Ridge",
-        "village": "Kolnara Ridge",
-        "district": "Rayagada, Odisha",
-        "latitude": 19.1950,
-        "longitude": 83.3950,
-        "riskLevel": "NORMAL",
-        "disasterType": "NONE",
-        "riskScore": 0.0,
-        "waterLevelCm": 0,
-        "waterLevelM": 0.0,
-        "rainMm": 0,
-        "soilMoisture": 0,
-        "temperature": 24.0,
-        "humidity": 60,
-        "smokeLevel": 0,
-        "flameDetected": False,
-        "vibration": False,
-        "battery": 90,
-        "batteryVoltage": 4.10,
-        "hopCount": 2,
-        "rssi": -72,
-        "status": "ONLINE",
-        "lastSeen": int(time.time() * 1000)
     }
 }
 
@@ -120,8 +94,7 @@ def parse_raw_serial_line(line: str):
     if json_match:
         try:
             data = json.loads(json_match.group(1))
-            node_id = str(data.get("node_id") or data.get("id") or "NODE_01")
-            mapped_id = "NODE_01" if node_id in ("V1", "NODE_01") else ("NODE_02" if node_id in ("V2", "NODE_02") else node_id)
+            mapped_id = "NODE_01"
             
             # Water level
             if "water_level_cm" in data:

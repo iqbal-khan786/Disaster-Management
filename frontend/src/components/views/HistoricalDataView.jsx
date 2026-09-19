@@ -19,19 +19,19 @@ export function HistoricalDataView({ history = [], nodes: _nodes = {} }) {
 
     for (let i = 0; i < 20; i++) {
       const pastTime = new Date(now - i * 1000 * 60 * 3).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const sample = base[i % base.length] || { waterLevel: 65, rain: 40, soilMoisture: 55, temp: 24.2, humidity: 78, vibration: 0, rssi: -66, riskScore: 40 };
+      const sample = base[i % base.length] || { waterLevel: 0, rain: 0, soilMoisture: 0, temp: 24.5, humidity: 75, vibration: 0, rssi: -65, riskScore: 10 };
       expanded.push({
         id: `LOG-${1000 + i}`,
         time: pastTime,
-        nodeId: i % 2 === 0 ? 'NODE_01' : 'NODE_02',
-        village: i % 2 === 0 ? 'Village 1: Kashipur Valley' : 'Village 2: Kolnara Ridge',
-        waterLevel: sample.waterLevel || 65,
-        rain: sample.rain || 40,
-        soilMoisture: sample.soilMoisture || 55,
-        temp: sample.temp || 24.2,
-        humidity: sample.humidity || 78,
-        riskScore: sample.riskScore || 40,
-        rssi: sample.rssi || -66
+        nodeId: 'NODE_01',
+        village: 'Village 1: Kashipur Valley',
+        waterLevel: sample.waterLevel || 0,
+        rain: sample.rain || 0,
+        soilMoisture: sample.soilMoisture || 0,
+        temp: sample.temp || 24.5,
+        humidity: sample.humidity || 75,
+        riskScore: sample.riskScore || 10,
+        rssi: sample.rssi || -65
       });
     }
     return expanded;
@@ -205,10 +205,8 @@ export function HistoricalDataView({ history = [], nodes: _nodes = {} }) {
               outline: 'none'
             }}
           >
-            <option value="all">All Village Sectors</option>
+            <option value="all">Village 1: Kashipur Valley (Live Node)</option>
             <option value="NODE_01">Village 1: Kashipur Valley</option>
-            <option value="NODE_02">Village 2: Kolnara Ridge</option>
-            <option value="NODE_03">Village 3: Kumbhikota Highland</option>
           </select>
         </div>
 
