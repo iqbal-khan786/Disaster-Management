@@ -246,9 +246,9 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
           fontSize: '11px'
         }}>
           <div>
-            <span style={{ color: '#94a3b8' }}>Battery Voltage:</span>
+            <span style={{ color: '#94a3b8' }}>Sampling Loop:</span>
             <div style={{ fontWeight: 800, color: '#10b981', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
-              {node.batteryVoltage || 3.95}V ({node.battery || 72}%)
+              1.5s (Continuous)
             </div>
           </div>
 

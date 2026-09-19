@@ -52,7 +52,7 @@ except ImportError:
 
 CONNECTED_CLIENTS = set()
 
-# Live State of Monitored Villages (100% Real Hardware Baseline - Node 1 with 6 Sensors)
+# Live State of Monitored Village (100% Real Hardware Baseline - Node 1 with 6 Sensors)
 LIVE_NODES = {
     "NODE_01": {
         "id": "NODE_01",
@@ -76,8 +76,6 @@ LIVE_NODES = {
         "temperature": 24.5,
         "temp": 24.5,
         "humidity": 75,
-        "battery": 72,
-        "batteryVoltage": 3.95,
         "hopCount": 1,
         "rssi": -65,
         "status": "ONLINE",
@@ -149,10 +147,6 @@ def parse_raw_serial_line(line: str):
             temp_val = float(data.get("temperature", data.get("temp", 24.5)))
             hum_val = float(data.get("humidity", 75.0))
 
-            # Battery
-            bat_v = float(data.get("batteryVoltage", 3.95))
-            bat_pct = int(min(100, max(10, (bat_v / 4.2) * 100)))
-
             normalized = {
                 "id": mapped_id,
                 "node_id": mapped_id,
@@ -179,8 +173,6 @@ def parse_raw_serial_line(line: str):
                 "temperature": temp_val,
                 "temp": temp_val,
                 "humidity": hum_val,
-                "battery": bat_pct,
-                "batteryVoltage": bat_v,
                 "hopCount": int(data.get("hopCount", 1)),
                 "rssi": int(data.get("rssi", -65)),
                 "status": "ONLINE",
@@ -214,7 +206,6 @@ def parse_raw_serial_line(line: str):
             vib = False
             temp = 24.5
             hum = 75.0
-            bat = 3.95
             hop = 1
 
             for p in parts[6:]:
@@ -235,8 +226,6 @@ def parse_raw_serial_line(line: str):
                     temp = float(p.replace("TEMP:", ""))
                 elif p.startswith("HUM:"):
                     hum = float(p.replace("HUM:", ""))
-                elif p.startswith("BAT:"):
-                    bat = float(p.replace("BAT:", ""))
 
             normalized = {
                 "id": mapped_id,
@@ -264,8 +253,6 @@ def parse_raw_serial_line(line: str):
                 "temperature": temp,
                 "temp": temp,
                 "humidity": hum,
-                "battery": int(min(100, max(10, (bat / 4.2) * 100))),
-                "batteryVoltage": bat,
                 "hopCount": hop,
                 "rssi": -65,
                 "status": "ONLINE",

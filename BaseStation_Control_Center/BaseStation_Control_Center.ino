@@ -41,7 +41,7 @@ const char* AP_PASS = "emergency123";
 WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
 
-// Data structure for monitored villages
+// Data structure for monitored villages (Strict 6 Sensors)
 struct VillageNode {
   String id;
   String riskLevel;
@@ -52,8 +52,10 @@ struct VillageNode {
   int rain;
   int soil;
   int smoke;
-  float waterLevel;
-  float battery;
+  bool flame;
+  bool vibration;
+  float temp;
+  float humidity;
   int hopCount;
   int rssi;
   String lastPacket;
@@ -418,9 +420,9 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
           </div>
           <div class="metric-row">
             <div class="metric-box"><div>Rain</div><div class="metric-val">${n.rain || 0}%</div></div>
-            <div class="metric-box"><div>Water</div><div class="metric-val">${Number(n.waterLevel).toFixed(1)}m</div></div>
             <div class="metric-box"><div>Soil</div><div class="metric-val">${n.soil || 0}%</div></div>
-            <div class="metric-box"><div>Bat</div><div class="metric-val">${Number(n.battery || 4.0).toFixed(1)}V</div></div>
+            <div class="metric-box"><div>Smoke</div><div class="metric-val">${n.smoke || 0}PPM</div></div>
+            <div class="metric-box"><div>Vib</div><div class="metric-val">${n.vibration ? 'DETECT' : 'OK'}</div></div>
           </div>
           ${isEmerg ? `<button class="btn-dispatch" onclick="sendWsCommand('DISPATCH', '${n.id}')">🚨 DISPATCH RESCUE TEAM (WS)</button>` : ''}
         `;
@@ -478,8 +480,10 @@ String buildVillageJson(int index) {
   json += "\"rain\":" + String(villages[index].rain) + ",";
   json += "\"soil\":" + String(villages[index].soil) + ",";
   json += "\"smoke\":" + String(villages[index].smoke) + ",";
-  json += "\"waterLevel\":" + String(villages[index].waterLevel, 2) + ",";
-  json += "\"battery\":" + String(villages[index].battery, 2) + ",";
+  json += "\"flame\":" + String(villages[index].flame ? "true" : "false") + ",";
+  json += "\"vibration\":" + String(villages[index].vibration ? "true" : "false") + ",";
+  json += "\"temp\":" + String(villages[index].temp, 1) + ",";
+  json += "\"humidity\":" + String(villages[index].humidity, 1) + ",";
   json += "\"hopCount\":" + String(villages[index].hopCount) + ",";
   json += "\"rssi\":" + String(villages[index].rssi);
   json += "}";
@@ -503,58 +507,46 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
     case WStype_DISCONNECTED:
       Serial.printf("[WS] Client #%u Disconnected.\n", num);
       break;
-
     case WStype_CONNECTED: {
       IPAddress ip = webSocket.remoteIP(num);
       Serial.printf("[WS] Client #%u Connected from %d.%d.%d.%d\n", num, ip[0], ip[1], ip[2], ip[3]);
-      // Send current state immediately on connect
-      if (totalNodesKnown > 0) {
-        String allData = buildAllVillagesJson();
-        webSocket.sendTXT(num, allData);
-      }
+      // Immediately send current known state
+      String json = buildAllVillagesJson();
+      webSocket.sendTXT(num, json);
       break;
     }
-
     case WStype_TEXT: {
       String msg = String((char*)payload);
-      Serial.printf("[WS RX] Client #%u sent: %s\n", num, msg.c_str());
-
-      // Handle Commands from Dashboard
-      if (msg.indexOf("\"cmd\":\"SIREN\"") >= 0) {
-        Serial.println("[WS CMD] 🚨 Remote Siren Triggered via WebSocket!");
+      Serial.printf("[WS RX #%u] %s\n", num, msg.c_str());
+      // Handle Emergency Dispatch Commands from Web Dashboard
+      if (msg.startsWith("CMD|DISPATCH|") || msg.startsWith("DISPATCH|")) {
         digitalWrite(PIN_STATUS_LED, HIGH);
-        tone(PIN_HQ_BUZZER, 2200, 600);
-        delay(600);
-        tone(PIN_HQ_BUZZER, 1400, 600);
-      } else if (msg.indexOf("\"cmd\":\"DISPATCH\"") >= 0) {
-        Serial.println("[WS CMD] 🚁 Rescue Dispatch Request Received via WebSocket!");
-        tone(PIN_HQ_BUZZER, 1800, 300);
-      } else if (msg.indexOf("\"cmd\":\"GET_ALL\"") >= 0) {
-        String allData = buildAllVillagesJson();
-        webSocket.sendTXT(num, allData);
+        tone(PIN_HQ_BUZZER, 2400, 500);
+        delay(100);
+        digitalWrite(PIN_STATUS_LED, LOW);
       }
       break;
     }
-
     default:
       break;
   }
 }
 
-// Parse Raw LoRa Packet and Broadcast via WebSocket
-void parseAndStorePacket(String payload, int rssi) {
-  Serial.printf("\n[LORA HQ RX] Payload: %s (RSSI: %d dBm)\n", payload.c_str(), rssi);
+// Process and Parse LoRa/Serial Packet
+void parseAndProcessPacket(String payload, int rssi) {
+  Serial.printf("[RAW RX] RSSI:%d dBm | %s\n", rssi, payload.c_str());
 
   if (payload.startsWith("ACK|")) return;
 
-  char buf[200];
+  char buf[220];
   payload.toCharArray(buf, sizeof(buf));
   char* token = strtok(buf, "|");
 
   int field = 0;
   String id = "V1", riskLvl = "NORMAL", disaster = "NONE";
-  float lat = 19.1950, lng = 83.3950, score = 0.0, water = 0.0, bat = 4.0;
+  float lat = 19.1950, lng = 83.3950, score = 0.0, temp = 24.5, hum = 75.0;
   int rain = 0, soil = 0, smoke = 0, hop = 1;
+  bool flame = false, vib = false;
   String pktSeq = "";
 
   while (token != NULL) {
@@ -585,15 +577,25 @@ void parseAndStorePacket(String payload, int rssi) {
       smkStr.replace("SMK:", "");
       smoke = smkStr.toInt();
     }
-    else if (String(token).startsWith("H2O:")) {
-      String wStr = String(token);
-      wStr.replace("H2O:", "");
-      water = atof(wStr.c_str());
+    else if (String(token).startsWith("FLM:")) {
+      String fStr = String(token);
+      fStr.replace("FLM:", "");
+      flame = (fStr.toInt() == 1);
     }
-    else if (String(token).startsWith("BAT:")) {
-      String bStr = String(token);
-      bStr.replace("BAT:", "");
-      bat = atof(bStr.c_str());
+    else if (String(token).startsWith("VIB:")) {
+      String vStr = String(token);
+      vStr.replace("VIB:", "");
+      vib = (vStr.toInt() == 1);
+    }
+    else if (String(token).startsWith("TEMP:")) {
+      String tStr = String(token);
+      tStr.replace("TEMP:", "");
+      temp = atof(tStr.c_str());
+    }
+    else if (String(token).startsWith("HUM:")) {
+      String hmStr = String(token);
+      hmStr.replace("HUM:", "");
+      hum = atof(hmStr.c_str());
     }
     token = strtok(NULL, "|");
     field++;
@@ -609,8 +611,10 @@ void parseAndStorePacket(String payload, int rssi) {
   villages[idx].rain = rain;
   villages[idx].soil = soil;
   villages[idx].smoke = smoke;
-  villages[idx].waterLevel = water;
-  villages[idx].battery = bat;
+  villages[idx].flame = flame;
+  villages[idx].vibration = vib;
+  villages[idx].temp = temp;
+  villages[idx].humidity = hum;
   villages[idx].hopCount = hop;
   villages[idx].rssi = rssi;
   villages[idx].lastPacket = pktSeq;

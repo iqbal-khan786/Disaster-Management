@@ -115,7 +115,7 @@ export function DisasterLifecycleDetails({ currentPhase, nodes, onOpenDispatch }
                 </div>
               </div>
               <div style={{ fontSize: '10px', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '4px', marginTop: 'auto' }}>
-                <Sun size={12} /> Solar + Battery Runtime: 72+ Hours Autonomous
+                <Sun size={12} /> Solar Continuous Power: 24/7 Active Field Operation
               </div>
             </div>
           </div>

@@ -98,7 +98,6 @@ struct DisasterData {
   double latitude;
   double longitude;
   int satellites;
-  float batteryVoltage;
 };
 
 DisasterData currentTelemetry;
@@ -141,9 +140,6 @@ void readAllSensors() {
   // 6. Vibration
   currentTelemetry.vibrationDetected = vibrationTriggered;
   vibrationTriggered = false; // reset after latch
-
-  // Default healthy battery level
-  currentTelemetry.batteryVoltage = 3.95;
 }
 
 // Calculate GPS Position
@@ -307,8 +303,6 @@ String buildJsonTelemetry() {
   json += "\"temperature\":" + String(currentTelemetry.temperatureC, 1) + ",";
   json += "\"temp\":" + String(currentTelemetry.temperatureC, 1) + ",";
   json += "\"humidity\":" + String(currentTelemetry.humidityPercent, 1) + ",";
-  json += "\"batteryVoltage\":" + String(currentTelemetry.batteryVoltage, 2) + ",";
-  json += "\"battery\":72,";
   json += "\"hopCount\":1,";
   json += "\"rssi\":-65,";
   json += "\"status\":\"ONLINE\",";

@@ -438,33 +438,21 @@
     let villageNodes = {
       "V1": {
         id: "V1",
-        name: "Village 1: Kashipur Valley (Flood Epicenter)",
-        latitude: 19.2400,
-        longitude: 83.3300,
+        name: "Village 1: Kashipur Valley (Primary Monitoring Zone)",
+        latitude: 19.1950,
+        longitude: 83.3950,
         riskLevel: "EMERGENCY",
         riskScore: 88.0,
         disasterType: "CRITICAL FLASH FLOOD",
         rain: 95,
         soil: 96,
-        waterLevel: 2.25,
-        battery: 4.02,
+        smoke: 18,
+        flame: 1,
+        vibration: 1,
+        temp: 24.5,
+        humidity: 82,
         hopCount: 1,
         rssi: -64
-      },
-      "V2": {
-        id: "V2",
-        name: "Village 2: Kolnara Ridge (Relay Repeater)",
-        latitude: 19.1950,
-        longitude: 83.3950,
-        riskLevel: "NORMAL",
-        riskScore: 18.0,
-        disasterType: "NONE",
-        rain: 22,
-        soil: 35,
-        waterLevel: 0.40,
-        battery: 4.18,
-        hopCount: 2,
-        rssi: -76
       }
     };
 
@@ -475,8 +463,8 @@
       data: {
         labels: ['14:25', '14:26', '14:27', '14:28', '14:29', '14:30', '14:31'],
         datasets: [
-          { label: 'Water Depth (m)', data: [0.4, 0.6, 0.9, 1.2, 1.5, 1.7, 1.8], borderColor: '#38bdf8', borderWidth: 2, tension: 0.3, fill: false },
-          { label: 'Rain Intensity (%)', data: [30, 45, 60, 75, 82, 85, 88], borderColor: '#818cf8', borderWidth: 2, tension: 0.3, fill: false }
+          { label: 'Soil Saturation (%)', data: [40, 56, 69, 78, 85, 90, 96], borderColor: '#10b981', borderWidth: 2, tension: 0.3, fill: false },
+          { label: 'Rainfall (%)', data: [30, 45, 60, 75, 82, 85, 88], borderColor: '#818cf8', borderWidth: 2, tension: 0.3, fill: false }
         ]
       },
       options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { font: { size: 9 }, color: '#94a3b8' } }, y: { ticks: { font: { size: 9 }, color: '#94a3b8' } } }, plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } } }
@@ -488,8 +476,7 @@
       data: {
         labels: ['14:25', '14:26', '14:27', '14:28', '14:29', '14:30', '14:31'],
         datasets: [
-          { label: 'Village 1 Risk', data: [28, 42, 58, 68, 76, 80, 82], borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.15)', borderWidth: 2, fill: true, tension: 0.3 },
-          { label: 'Village 2 Risk', data: [10, 11, 12, 12, 13, 14, 14], borderColor: '#10b981', borderWidth: 2, fill: false, tension: 0.3 }
+          { label: 'Village 1 Risk', data: [28, 42, 58, 68, 76, 80, 82], borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.15)', borderWidth: 2, fill: true, tension: 0.3 }
         ]
       },
       options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { font: { size: 9 }, color: '#94a3b8' } }, y: { max: 100, min: 0, ticks: { font: { size: 9 }, color: '#94a3b8' } } }, plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } } }
@@ -528,10 +515,10 @@
           </div>
           <div class="sensor-stats-row">
             <div class="stat-pill"><div class="stat-label">Rain</div><div class="stat-value">${n.rain || 0}%</div></div>
-            <div class="stat-pill"><div class="stat-label">Water</div><div class="stat-value">${Number(n.waterLevel || 0).toFixed(1)}m</div></div>
-            <div class="stat-pill"><div class="stat-label">Smoke</div><div class="stat-value" style="color:${(n.smoke > 40)?'#ef4444':'#10b981'}">${n.smoke !== undefined ? n.smoke + '%' : (n.flame || 8) + '%'}</div></div>
             <div class="stat-pill"><div class="stat-label">Soil</div><div class="stat-value">${n.soil || 0}%</div></div>
-            <div class="stat-pill"><div class="stat-label">Battery</div><div class="stat-value">${Number(n.battery || 4.0).toFixed(2)}V</div></div>
+            <div class="stat-pill"><div class="stat-label">Smoke</div><div class="stat-value" style="color:${(n.smoke > 40)?'#ef4444':'#10b981'}">${n.smoke !== undefined ? n.smoke + ' PPM' : '0 PPM'}</div></div>
+            <div class="stat-pill"><div class="stat-label">Flame</div><div class="stat-value">${n.flame ? 'FIRE' : 'CLEAR'}</div></div>
+            <div class="stat-pill"><div class="stat-label">Vib</div><div class="stat-value">${n.vibration ? 'DETECT' : 'OK'}</div></div>
           </div>
           ${isEmerg ? `
             <button class="btn-action-dispatch" onclick="dispatchRescue('${n.id}', '${n.latitude}', '${n.longitude}')">
@@ -710,8 +697,11 @@
         riskScore: 94.5,
         rain: 98,
         soil: 96,
-        waterLevel: 2.35,
-        battery: 3.98,
+        smoke: 180,
+        flame: 1,
+        vibration: 1,
+        temp: 26.0,
+        humidity: 90,
         hopCount: 1,
         rssi: -62
       };

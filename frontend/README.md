@@ -52,7 +52,6 @@ The dashboard natively ingests both the unified DisasterGuard schema and the Ray
   "node_id": "NODE_01",
   "village": "Village 1: Kashipur Valley",
   "timestamp": "2026-09-19T15:30:00Z",
-  "water_level_cm": 225,
   "rainfall_mm": 95.0,
   "soil_moisture": 96,
   "temperature": 23.5,
@@ -60,8 +59,6 @@ The dashboard natively ingests both the unified DisasterGuard schema and the Ray
   "smoke_level": 18,
   "flame_detected": false,
   "vibration": true,
-  "battery": 87,
-  "batteryVoltage": 4.02,
   "rssi": -64,
   "hopCount": 1,
   "risk": {
@@ -80,14 +77,14 @@ The dashboard natively ingests both the unified DisasterGuard schema and the Ray
 1. **Overview Dashboard**:
    - 6 Key Performance Indicator Cards: Active Sensor Nodes, Villages Monitored, Active Alerts, Network Health (RSSI/SNR), Last Data Received, Gateway Status.
    - 4 Multi-Hazard Risk Cards: Flood Hazard, Landslide Hazard, Wildfire/Smoke Hazard, Cyclone/Storm Hazard (with AI confidence scores).
-   - 11-Reading Sensor Telemetry Grid.
-   - Real-Time Time-Series Trend Charts for Water Level, Rainfall, Soil Moisture, Temp & Humidity, Seismic Vibration, and RSSI.
+   - 6-Reading Sensor Telemetry Grid (Rain, Soil Moisture, Smoke, Flame, Vibration, DHT22 Climate).
+   - Real-Time Time-Series Trend Charts for Rainfall, Soil Moisture, Smoke, Seismic Vibration, Temp & Humidity, and RSSI.
 2. **Live Monitoring**: High-frequency telemetry matrix with radial/linear gauges, Safe/Caution/Critical threshold limits, and per-node diagnostic switches.
-3. **Village Network**: Interactive Leaflet GIS Topographic / Satellite Map with river inundation zones + interactive LoRa Mesh Relay Topology flowchart (`Node 1 -> Node 2 -> Gateway -> Dashboard`).
-4. **Risk Analysis**: AI Multi-Factor Risk Matrix detailing sensor weight distributions (Water 35%, Rain 30%, Soil 20%, Seismic 10%, Smoke 5%).
+3. **Village Network**: Interactive Leaflet GIS Topographic / Satellite Map with river inundation zones.
+4. **Risk Analysis**: AI Multi-Factor Risk Matrix detailing sensor weight distributions (Rain 25%, Soil 20%, Seismic 20%, Flame 15%, Smoke 10%, Climate 10%).
 5. **Disaster Alerts**: Emergency Alert Center with critical warning marquees, severity badges, Acknowledge & Mark Resolved workflows, and siren broadcasts.
-6. **Sensor Nodes**: Hardware specifications (ESP32-WROOM-32, SX1278 433MHz, JSN-SR04T, Soil v1.2, MQ-2, SW-420, DHT22), battery voltage, and RF ping test buttons.
-7. **Historical Data**: Filterable telemetry logs, time-range selectors (1h, 6h, 24h, 7d), statistical min/max/avg cards, and one-click CSV/JSON data export.
+6. **Sensor Nodes**: Hardware specifications (ESP32 DevKit V1, SX1278 433MHz, Rain Module, Soil v1.2, MQ-2, Flame IR, SW-420, DHT22) and RF ping test buttons.
+7. **Historical Data**: Filterable telemetry logs, time-range selectors (1h, 6h, 24h, 7d), statistical min/max/avg cards, one-click CSV/JSON data export, and official PDF report generation.
 8. **Rescue Operations (CAD)**: Multi-agency response management (ODRAF Power Boats, NDRF 4x4 Amphibious Units, Medical Evac Wing), shelter capacities, and interactive tactical dispatch CAD modal.
 9. **System Settings**: WebSocket server URL configuration, LoRa RF band selector (433MHz / 868MHz / 915MHz), customizable danger threshold limits, and Web Audio siren preferences.
 

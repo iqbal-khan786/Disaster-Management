@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import {
   Cpu,
   Radio,
-  Battery,
+  Activity,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  Clock
 } from 'lucide-react';
 import { playTacticalBeep } from '../../utils/audioSiren';
 
@@ -119,8 +120,8 @@ export function SensorNodesView({ nodes = {}, onSelectNode: _onSelectNode }) {
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#94a3b8' }}>Power Architecture:</span>
-                  <span style={{ color: '#10b981', fontWeight: 600 }}>18650 Li-ion 3.7V + 5V Solar Harvester</span>
+                  <span style={{ color: '#94a3b8' }}>Operational Status:</span>
+                  <span style={{ color: '#10b981', fontWeight: 600 }}>Active Continuous Sampling (1.5s Cycle)</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#94a3b8' }}>Firmware Build:</span>
@@ -128,14 +129,14 @@ export function SensorNodesView({ nodes = {}, onSelectNode: _onSelectNode }) {
                 </div>
               </div>
 
-              {/* Power & RF Link Telemetry */}
+              {/* Sampling & RF Link Telemetry */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '8px 10px', borderRadius: '6px' }}>
                   <div style={{ fontSize: '10px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Battery size={12} color="#10b981" /> Battery Voltage
+                    <Clock size={12} color="#10b981" /> Sampling Loop
                   </div>
                   <div style={{ fontSize: '16px', fontWeight: 800, color: '#10b981', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
-                    {node.batteryVoltage || 3.95}V <span style={{ fontSize: '11px', color: '#94a3b8' }}>({node.battery || 72}%)</span>
+                    1.5s <span style={{ fontSize: '11px', color: '#94a3b8' }}>(Real-time)</span>
                   </div>
                 </div>
 

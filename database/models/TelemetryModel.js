@@ -8,7 +8,6 @@ export const TelemetryModel = {
       riskScore = 0.0,
       riskLevel = 'NORMAL',
       disasterType = 'NONE',
-      waterLevel = 0.0,
       rain = 0,
       soil = 0,
       temp = 24.0,
@@ -16,7 +15,6 @@ export const TelemetryModel = {
       vibration = 0,
       flame = 0.0,
       smoke = 0,
-      battery = 4.0,
       hopCount = 1,
       rssi = -70,
       snr = 8.0,
@@ -26,18 +24,18 @@ export const TelemetryModel = {
     const sql = `
       INSERT INTO telemetry_logs (
         village_id, risk_score, risk_level, disaster_type,
-        water_level_m, rainfall_pct, soil_moisture_pct,
+        rainfall_pct, soil_moisture_pct,
         temperature_c, humidity_pct, vibration_detected,
-        flame_intensity, smoke_pct, battery_voltage, hop_count,
+        flame_intensity, smoke_pct, hop_count,
         rssi_dbm, snr, raw_packet
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     return await run(sql, [
       villageId, riskScore, riskLevel, disasterType,
-      waterLevel, rain, soil,
+      rain, soil,
       temp, humidity, vibration ? 1 : 0,
-      flame, smoke, battery, hopCount,
+      flame, smoke, hopCount,
       rssi, snr, rawPacket
     ]);
   },
@@ -47,10 +45,10 @@ export const TelemetryModel = {
     const sql = `
       SELECT 
         id, village_id, risk_score, risk_level, disaster_type,
-        water_level_m, rainfall_pct, soil_moisture_pct,
+        rainfall_pct, soil_moisture_pct,
         temperature_c, humidity_pct, vibration_detected,
         flame_intensity, smoke_pct,
-        battery_voltage, hop_count, rssi_dbm,
+        hop_count, rssi_dbm,
         strftime('%H:%M:%S', recorded_at) as time_label,
         recorded_at
       FROM telemetry_logs

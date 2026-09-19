@@ -132,7 +132,7 @@ export function LiveMonitoringView({
             <span>GPS: {currentNode.latitude?.toFixed(4)}°N, {currentNode.longitude?.toFixed(4)}°E</span>
             <span>LoRa Hop: {currentNode.hopCount || 1}</span>
             <span>Signal: {currentNode.rssi || -65} dBm</span>
-            <span>Battery: {currentNode.battery || 72}% ({currentNode.batteryVoltage || 3.95}V)</span>
+            <span>Sensors: 6 Physical Hardware Transducers</span>
           </div>
         </div>
 

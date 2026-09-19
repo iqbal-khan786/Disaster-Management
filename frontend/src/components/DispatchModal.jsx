@@ -7,9 +7,9 @@ export function DispatchModal({ node, isOpen, onClose, onConfirm }) {
 
   if (!isOpen || !node) return null;
 
-  const lat = typeof node.latitude === 'number' ? node.latitude.toFixed(4) : '19.2400';
-  const lng = typeof node.longitude === 'number' ? node.longitude.toFixed(4) : '83.3300';
-  const water = node.waterLevelCm !== undefined ? `${node.waterLevelCm}cm (${node.waterLevelM || (node.waterLevelCm/100).toFixed(2)}m)` : (node.waterLevel !== undefined ? `${node.waterLevel}m` : '0cm');
+  const lat = typeof node.latitude === 'number' ? node.latitude.toFixed(4) : '19.1950';
+  const lng = typeof node.longitude === 'number' ? node.longitude.toFixed(4) : '83.3950';
+  const soil = node.soilMoisture !== undefined ? `${node.soilMoisture}%` : (node.soil !== undefined ? `${node.soil}%` : '0%');
   const rain = node.rainMm !== undefined ? `${node.rainMm} mm/h` : (node.rain !== undefined ? `${node.rain}%` : '0 mm/h');
 
   const handleConfirm = () => {
@@ -92,9 +92,9 @@ export function DispatchModal({ node, isOpen, onClose, onConfirm }) {
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#94a3b8' }}>Flood Depth / Rain:</span>
+            <span style={{ color: '#94a3b8' }}>Rain / Soil Saturation:</span>
             <span style={{ color: '#f8fafc', fontWeight: 700 }}>
-              {water} | {rain}
+              Rain: {rain} | Soil: {soil}
             </span>
           </div>
         </div>

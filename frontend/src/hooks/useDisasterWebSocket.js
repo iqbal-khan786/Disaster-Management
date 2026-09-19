@@ -26,8 +26,6 @@ const INITIAL_NODES = {
     temp: 24.5,
     temperature: 24.5,
     humidity: 75,
-    battery: 72,
-    batteryVoltage: 3.95,
     hopCount: 1,
     rssi: -65,
     lastSeen: Date.now(),
@@ -47,7 +45,6 @@ const INITIAL_HISTORY = [
 function parseAnyIncomingData(rawInput) {
   if (!rawInput) return null;
 
-  // Already parsed JS object
   if (typeof rawInput === 'object') {
     return rawInput;
   }
@@ -63,7 +60,7 @@ function parseAnyIncomingData(rawInput) {
       const jsonStr = text.substring(jsonStart, jsonEnd + 1);
       return JSON.parse(jsonStr);
     } catch {
-      // Continue to other parsers
+      // Continue
     }
   }
 
@@ -102,7 +99,6 @@ function parseAnyIncomingData(rawInput) {
       let vib = false;
       let temp = 24.5;
       let hum = 75.0;
-      let bat = 3.95;
       let hop = 1;
 
       for (let i = 6; i < parts.length; i++) {
@@ -115,7 +111,6 @@ function parseAnyIncomingData(rawInput) {
         else if (p.startsWith('VIB:')) vib = p.replace('VIB:', '').trim() in ('1', 'true', 'TRUE', 'DETECTED');
         else if (p.startsWith('TEMP:')) temp = parseFloat(p.replace('TEMP:', '')) || 24.5;
         else if (p.startsWith('HUM:')) hum = parseFloat(p.replace('HUM:', '')) || 75.0;
-        else if (p.startsWith('BAT:')) bat = parseFloat(p.replace('BAT:', '')) || 3.95;
       }
 
       return {
@@ -144,8 +139,6 @@ function parseAnyIncomingData(rawInput) {
         temperature: temp,
         temp: temp,
         humidity: hum,
-        battery: bat > 5 ? Math.round(bat) : Math.min(100, Math.round((bat / 4.2) * 100)),
-        batteryVoltage: bat,
         hopCount: hop,
         rssi: -65,
         status: 'ONLINE',
@@ -247,19 +240,6 @@ export function useDisasterWebSocket() {
 
     const humidity = raw.humidity !== undefined ? Number(raw.humidity) : (existing ? existing.humidity : 75);
 
-    // Battery
-    let batteryVoltage = 3.95;
-    if (raw.batteryVoltage !== undefined) batteryVoltage = Number(raw.batteryVoltage);
-    else if (raw.battery !== undefined && Number(raw.battery) <= 5.0) batteryVoltage = Number(raw.battery);
-    else if (existing) batteryVoltage = existing.batteryVoltage;
-
-    let battery = 72;
-    if (raw.battery !== undefined) {
-      battery = Number(raw.battery) > 5 ? Math.round(Number(raw.battery)) : Math.min(100, Math.max(10, Math.round((Number(raw.battery) / 4.2) * 100)));
-    } else if (existing) {
-      battery = existing.battery;
-    }
-
     const rssi = raw.rssi !== undefined ? Number(raw.rssi) : (existing ? existing.rssi : -65);
     const hopCount = raw.hopCount !== undefined ? Number(raw.hopCount) : 1;
 
@@ -312,8 +292,6 @@ export function useDisasterWebSocket() {
       flameDetected: flameDetected,
       flame_detected: flameDetected,
       vibration: vibration,
-      battery: battery,
-      batteryVoltage: batteryVoltage,
       hopCount: hopCount,
       rssi: rssi,
       lastSeen: Date.now(),
