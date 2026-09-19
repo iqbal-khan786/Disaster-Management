@@ -84,17 +84,17 @@ export function OverviewView({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
           <Activity size={16} color="#38bdf8" />
           <h2 style={{ fontSize: '13px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.8px', margin: 0 }}>
-            Command Center KPI Overview
+            Disaster Management Command Center
           </h2>
         </div>
 
-        <div style={{
+        <div className="kpi-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
           gap: '12px'
         }}>
           {/* Card 1: Active Sensor Nodes */}
-          <div className="glass-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className="glass-card kpi-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>Active Nodes</span>
               <Radio size={16} color="#38bdf8" />
@@ -109,7 +109,7 @@ export function OverviewView({
           </div>
 
           {/* Card 2: Monitored Sector */}
-          <div className="glass-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className="glass-card kpi-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>Sectors Monitored</span>
               <Mountain size={16} color="#06b6d4" />
@@ -123,7 +123,7 @@ export function OverviewView({
           </div>
 
           {/* Card 3: Active Alerts */}
-          <div className="glass-card" style={{
+          <div className="glass-card kpi-card" style={{
             padding: '14px',
             display: 'flex',
             flexDirection: 'column',
@@ -143,7 +143,7 @@ export function OverviewView({
           </div>
 
           {/* Card 4: Network Health */}
-          <div className="glass-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className="glass-card kpi-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>Network Health</span>
               <Wifi size={16} color="#a855f7" />
@@ -157,7 +157,7 @@ export function OverviewView({
           </div>
 
           {/* Card 5: Last Telemetry Received */}
-          <div className="glass-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className="glass-card kpi-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>Last Telemetry</span>
               <Clock size={16} color="#38bdf8" />
@@ -171,7 +171,7 @@ export function OverviewView({
           </div>
 
           {/* Card 6: Gateway Status */}
-          <div className="glass-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className="glass-card kpi-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>Gateway Hub</span>
               <Server size={16} color={gatewayStatus === 'ONLINE' ? '#10b981' : '#ef4444'} />
@@ -231,14 +231,10 @@ export function OverviewView({
                   <span style={{ fontSize: '10px', color: '#94a3b8' }}>Rainfall Intensity & Runoff</span>
                 </div>
               </div>
-              <span style={{
+              <span className={`risk-level-label risk-${(selectedNode.risk?.flood || 'LOW').toLowerCase()}`} style={{
                 fontSize: '11px',
                 fontWeight: 800,
-                padding: '3px 8px',
-                borderRadius: '4px',
-                background: getRiskBg(selectedNode.risk?.flood || 'LOW'),
-                color: getRiskColor(selectedNode.risk?.flood || 'LOW'),
-                border: `1px solid ${getRiskColor(selectedNode.risk?.flood || 'LOW')}`
+                color: getRiskColor(selectedNode.risk?.flood || 'LOW')
               }}>
                 {selectedNode.risk?.flood || 'LOW'}
               </span>
@@ -286,14 +282,10 @@ export function OverviewView({
                   <span style={{ fontSize: '10px', color: '#94a3b8' }}>Soil Moisture & Slope Tremors</span>
                 </div>
               </div>
-              <span style={{
+              <span className={`risk-level-label risk-${(selectedNode.risk?.landslide || 'LOW').toLowerCase()}`} style={{
                 fontSize: '11px',
                 fontWeight: 800,
-                padding: '3px 8px',
-                borderRadius: '4px',
-                background: getRiskBg(selectedNode.risk?.landslide || 'LOW'),
-                color: getRiskColor(selectedNode.risk?.landslide || 'LOW'),
-                border: `1px solid ${getRiskColor(selectedNode.risk?.landslide || 'LOW')}`
+                color: getRiskColor(selectedNode.risk?.landslide || 'LOW')
               }}>
                 {selectedNode.risk?.landslide || 'LOW'}
               </span>
@@ -343,14 +335,10 @@ export function OverviewView({
                   <span style={{ fontSize: '10px', color: '#94a3b8' }}>MQ-2 Gas Sensor & Flame IR (Nominal)</span>
                 </div>
               </div>
-              <span style={{
+              <span className={`risk-level-label risk-${(selectedNode.risk?.fire || 'LOW').toLowerCase()}`} style={{
                 fontSize: '11px',
                 fontWeight: 800,
-                padding: '3px 8px',
-                borderRadius: '4px',
-                background: getRiskBg(selectedNode.risk?.fire || 'LOW'),
-                color: getRiskColor(selectedNode.risk?.fire || 'LOW'),
-                border: `1px solid ${getRiskColor(selectedNode.risk?.fire || 'LOW')}`
+                color: getRiskColor(selectedNode.risk?.fire || 'LOW')
               }}>
                 {selectedNode.risk?.fire || 'LOW'}
               </span>
@@ -400,14 +388,10 @@ export function OverviewView({
                   <span style={{ fontSize: '10px', color: '#94a3b8' }}>High Wind & Torrential Surge</span>
                 </div>
               </div>
-              <span style={{
+              <span className={`risk-level-label risk-${(selectedNode.risk?.cyclone || 'LOW').toLowerCase()}`} style={{
                 fontSize: '11px',
                 fontWeight: 800,
-                padding: '3px 8px',
-                borderRadius: '4px',
-                background: getRiskBg(selectedNode.risk?.cyclone || 'LOW'),
-                color: getRiskColor(selectedNode.risk?.cyclone || 'LOW'),
-                border: `1px solid ${getRiskColor(selectedNode.risk?.cyclone || 'LOW')}`
+                color: getRiskColor(selectedNode.risk?.cyclone || 'LOW')
               }}>
                 {selectedNode.risk?.cyclone || 'LOW'}
               </span>
@@ -488,7 +472,7 @@ export function OverviewView({
                     color: '#34d399',
                     border: '1px solid rgba(16, 185, 129, 0.5)'
                   }}>
-                    ⚡ LIVE HW
+                    LIVE HW
                   </span>
                 ) : null}
                 <span style={{ fontSize: '10px', color: '#94a3b8' }}>({node.riskLevel})</span>
@@ -552,7 +536,7 @@ export function OverviewView({
               fontFamily: 'JetBrains Mono',
               marginTop: '4px'
             }}>
-              {selectedNode.flameDetected ? '🔥 FLAME (1)' : 'CLEAR (0)'}
+              {selectedNode.flameDetected ? 'FLAME (1)' : 'CLEAR (0)'}
             </div>
             <span style={{ fontSize: '9px', color: '#64748b' }}>Flame IR (Pin 33)</span>
           </div>

@@ -194,9 +194,9 @@ export function RescueOperationsView({
                   marginTop: '10px',
                   padding: '6px',
                   borderRadius: '4px',
-                  border: '1px solid rgba(239, 68, 68, 0.4)',
-                  background: 'rgba(239, 68, 68, 0.15)',
-                  color: '#fca5a5',
+                  border: '1px solid #8f2d2d',
+                  background: '#a63d3d',
+                  color: '#ffffff',
                   fontSize: '10px',
                   fontWeight: 800,
                   cursor: 'pointer'

@@ -14,21 +14,21 @@ import {
 // Tile Provider Configurations (100% Free, Zero API Key Required, Zero Watermark)
 const TILE_LAYERS = {
   satellite: {
-    name: '🛰️ Real HD Satellite',
+    name: 'Real HD Satellite',
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution: 'Esri World Imagery (High-Res Real Satellite)',
     maxZoom: 19,
     hasOverlay: true
   },
   osm: {
-    name: '🗺️ OpenStreetMap',
+    name: 'OpenStreetMap',
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '&copy; OpenStreetMap contributors',
     maxZoom: 19,
     hasOverlay: false
   },
   topo: {
-    name: '🏔️ Topo Elevation & Contours',
+    name: 'Topo Elevation & Contours',
     url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
     attribution: 'OpenTopoMap (Topographic Mountain Contours)',
     maxZoom: 17,
@@ -40,7 +40,7 @@ const SATELLITE_LABELS_URL = 'https://services.arcgisonline.com/ArcGIS/rest/serv
 
 // Rayagada Sectors (Village 1 Live Hardware Node ➔ District Command HQ)
 const RAYAGADA_SECTORS = [
-  { name: 'Village 1: Kashipur Valley (⚡ Live ESP32 Hardware Node)', lat: 19.1950, lng: 83.3950, zoom: 14 },
+  { name: 'Village 1: Kashipur Valley (Live ESP32 Hardware Node)', lat: 19.1950, lng: 83.3950, zoom: 14 },
   { name: 'District Headquarter: Rayagada DEOC Base Hub', lat: 19.1670, lng: 83.4160, zoom: 15 }
 ];
 
@@ -255,7 +255,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
         lineCap: 'round',
         smoothFactor: 1.5
       }).addTo(map);
-      riverLine.bindPopup('<b style="color:#0284c7;">🌊 Nagavali River Basin</b><br/>Major flash flood drainage corridor in Rayagada');
+      riverLine.bindPopup('<b style="color:#0284c7;">Nagavali River Basin</b><br/>Major flash flood drainage corridor in Rayagada');
       riverPolylineRef.current = riverLine;
 
       // 2. Draw Flood Inundation Hazard Polygon
@@ -269,7 +269,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
       }).addTo(map);
       floodPoly.bindPopup(`
         <div style="font-family:sans-serif; padding:4px;">
-          <b style="color:#ef4444; font-size:13px;">🌊 CRITICAL FLOOD INUNDATION ZONE</b><br/>
+          <b style="color:#ef4444; font-size:13px;">CRITICAL FLOOD INUNDATION ZONE</b><br/>
           <span style="font-size:11px; color:#334155;">Kashipur River Lowland Valley</span><br/>
           <span style="font-size:10px; color:#ef4444; font-weight:bold;">Submerged Area: ~4.2 km² • Flood Depth: 2.25m</span>
         </div>
@@ -284,7 +284,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
         fillOpacity: 0.2,
         dashArray: '4, 4'
       }).addTo(map);
-      stormPoly.bindPopup('<b style="color:#818cf8;">🌧️ Doppler Precipitation Radar</b><br/>Active Cloudburst Cell (>95mm/hr rain rate)');
+      stormPoly.bindPopup('<b style="color:#818cf8;">Doppler Precipitation Radar</b><br/>Active Cloudburst Cell (>95mm/hr rain rate)');
       stormPolygonRef.current = stormPoly;
 
       // 4. District HQ Marker
@@ -308,7 +308,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
               font-weight: 800;
               z-index: 2;
             ">
-              🏢 HQ
+              HQ
             </div>
             <div style="position:absolute; top:-16px; background:rgba(15,23,42,0.9); border:1px solid #38bdf8; color:#38bdf8; font-size:9px; font-weight:800; padding:1px 5px; border-radius:4px; white-space:nowrap; font-family:monospace;">
               RAYAGADA DEOC (210m)
@@ -323,7 +323,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
         .addTo(map)
         .bindPopup(`
           <div style="font-family:sans-serif; padding:4px;">
-            <b style="color:#0284c7; font-size:13px;">🚨 DISTRICT HEADQUARTERS (RAYAGADA DEOC)</b><br/>
+            <b style="color:#0284c7; font-size:13px;">DISTRICT HEADQUARTERS (RAYAGADA DEOC)</b><br/>
             <span style="font-size:11px; color:#334155;">Collectorate Command Hub, Rayagada (Odisha)</span><br/>
             <span style="font-size:10px; color:#64748b; font-family:monospace;">Receives relayed LoRa packet from V2 ➔ Dispatches Rescue to V1</span>
           </div>
@@ -358,7 +358,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
           .addTo(map)
           .bindPopup(`
             <div style="font-family:sans-serif; padding:4px;">
-              <b style="color:#10b981; font-size:12px;">🏕️ HIGH GROUND EVACUATION SHELTER</b><br/>
+              <b style="color:#10b981; font-size:12px;">HIGH GROUND EVACUATION SHELTER</b><br/>
               <span style="font-size:11px; color:#334155;">${shelter.name}</span><br/>
               <span style="font-size:10px; color:#64748b;">Capacity: ${shelter.capacity} • Elevation: ${shelter.elevation}</span>
             </div>
@@ -453,7 +453,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
             box-shadow: 0 2px 8px rgba(0,0,0,0.8);
             z-index: 3;
           ">
-            ${node.id}: ${nodeElev} ${isEmerg ? '• ⚠️ HIGH RISK' : '• NOMINAL'}
+            ${node.id}: ${nodeElev} ${isEmerg ? '• HIGH RISK' : '• NOMINAL'}
           </div>
         </div>
       `;
@@ -481,13 +481,13 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
               <b>Vibration:</b> ${node.vibration ? 'MOTION DETECTED' : 'NORMAL'} | <b>Climate:</b> ${node.temp || 24.5}°C / ${node.humidity || 75}%
             </div>
             <div style="font-size:10px; color:#64748b; font-family:monospace; background:#f1f5f9; padding:3px 6px; border-radius:4px; margin-bottom:8px;">
-              📍 GPS: ${node.latitude.toFixed(4)}°N, ${node.longitude.toFixed(4)}°E • RSSI: ${node.rssi || -65}dBm
+              GPS: ${node.latitude.toFixed(4)}°N, ${node.longitude.toFixed(4)}°E • RSSI: ${node.rssi || -65}dBm
             </div>
             <button
               onclick="window.__onSelectVillageNode && window.__onSelectVillageNode('${node.id}')"
               style="width:100%; background:#0f172a; color:#ffffff; border:none; padding:7px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px;"
             >
-              📊 View Detailed Status & Sensors
+              View Detailed Status & Sensors
             </button>
           </div>
         `);
@@ -558,7 +558,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
               font-size: 13px;
               z-index: 2;
             ">
-              🚤
+              Rescue Boat
             </div>
             <div style="position:absolute; top:-16px; background:rgba(239,68,68,0.9); color:#fff; font-size:8px; font-weight:800; padding:1px 4px; border-radius:3px; white-space:nowrap;">
               NDRF BOAT EN ROUTE
@@ -572,7 +572,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
       if (!rescueMarkerRef.current) {
         rescueMarkerRef.current = L.marker([19.2150, 83.3650], { icon: rescueIcon })
           .addTo(map)
-          .bindPopup('<b style="color:#ef4444;">🚤 NDRF Inflatable Rescue Boat</b><br/>En route to Village 1 via Nagavali water corridor');
+          .bindPopup('<b style="color:#ef4444;">NDRF Inflatable Rescue Boat</b><br/>En route to Village 1 via Nagavali water corridor');
       }
     }
 
@@ -652,9 +652,9 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
             value={selectedSector}
             onChange={(e) => handleSectorChange(Number(e.target.value))}
             style={{
-              background: 'rgba(15, 23, 42, 0.95)',
-              border: '1px solid var(--card-border)',
-              color: 'var(--text-main)',
+              background: '#1f2b40',
+              border: '1px solid #71869a',
+              color: '#ffffff',
               fontSize: '11px',
               fontWeight: 700,
               padding: '5px 8px',
@@ -663,7 +663,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
             }}
           >
             {RAYAGADA_SECTORS.map((spot, i) => (
-              <option key={spot.name} value={i}>📍 {spot.name}</option>
+              <option key={spot.name} value={i}>{spot.name}</option>
             ))}
           </select>
 
@@ -688,7 +688,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
                 cursor: 'pointer'
               }}
             >
-              🛰️ Satellite
+              Satellite
             </button>
             <button
               onClick={() => applyTileLayer('topo')}
@@ -703,7 +703,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
                 cursor: 'pointer'
               }}
             >
-              🏔️ Topo Contours
+              Topo Contours
             </button>
             <button
               onClick={() => applyTileLayer('osm')}
@@ -718,7 +718,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
                 cursor: 'pointer'
               }}
             >
-              🗺️ Streets
+              Streets
             </button>
           </div>
 
@@ -758,7 +758,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
           }}
         >
           <Waves size={12} />
-          {isHindi ? '🌊 बाढ़ फैलाव क्षेत्र' : '🌊 Flood Inundation Zone'}
+          {isHindi ? 'बाढ़ फैलाव क्षेत्र' : 'Flood Inundation Zone'}
         </button>
 
         {/* Toggle 2: RF Coverage Range */}
@@ -779,7 +779,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
           }}
         >
           <Radio size={12} />
-          {isHindi ? '📡 12km लोरा रेडियो रेंज' : '📡 12km LoRa RF Range'}
+          {isHindi ? '12km लोरा रेडियो रेंज' : '12km LoRa RF Range'}
         </button>
 
         {/* Toggle 3: Weather Radar */}
@@ -800,7 +800,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
           }}
         >
           <CloudRain size={12} />
-          {isHindi ? '🌧️ वर्षा डॉप्लर रडार' : '🌧️ Storm Doppler Radar'}
+          {isHindi ? 'वर्षा डॉप्लर रडार' : 'Storm Doppler Radar'}
         </button>
 
         {/* Toggle 4: Elevation Profile */}
@@ -821,7 +821,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
           }}
         >
           <Mountain size={12} />
-          {isHindi ? '🏔️ पहाड़ी एलिवेशन प्रोफाइल' : '🏔️ Cross-Section Terrain Profile'}
+          {isHindi ? 'पहाड़ी एलिवेशन प्रोफाइल' : 'Cross-Section Terrain Profile'}
         </button>
       </div>
 
@@ -980,7 +980,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
           </div>
 
           <div style={{ fontSize: '9px', color: 'var(--text-dim)', textAlign: 'right' }}>
-            💡 <i>Why Relay? Direct signal from V1 to HQ is blocked by a 680m mountain ridge. Village 2 acts as a line-of-sight wireless repeater.</i>
+            <i>Why Relay? Direct signal from V1 to HQ is blocked by a 680m mountain ridge. Village 2 acts as a line-of-sight wireless repeater.</i>
           </div>
         </div>
       )}

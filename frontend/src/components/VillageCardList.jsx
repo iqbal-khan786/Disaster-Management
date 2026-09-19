@@ -114,7 +114,7 @@ export function VillageCardList({ nodes, onOpenDispatch, onSelectNode }) {
                   <Flame size={13} color="#ef4444" />
                   EVENT: {node.disasterType || 'CRITICAL EMERGENCY'}
                 </span>
-                <span style={{ color: '#ef4444', animation: 'pulse 1s infinite' }}>🚨 ACTIVE</span>
+                  <span style={{ color: '#ef4444', animation: 'pulse 1s infinite' }}>ACTIVE</span>
               </div>
             )}
 

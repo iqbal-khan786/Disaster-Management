@@ -40,7 +40,7 @@ export function Header({
   const isConnected = connectionStatus === 'CONNECTED';
 
   return (
-    <header style={{
+    <header className="top-header" style={{
       background: 'rgba(8, 14, 28, 0.96)',
       backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
@@ -86,13 +86,9 @@ export function Header({
               Disaster<span style={{ color: '#38bdf8' }}>Guard</span>
             </h1>
             <span style={{
-              background: 'rgba(56, 189, 248, 0.15)',
-              color: '#38bdf8',
-              border: '1px solid rgba(56, 189, 248, 0.3)',
+              color: '#d39b16',
               fontSize: '10px',
               fontWeight: 800,
-              padding: '2px 7px',
-              borderRadius: '4px',
               letterSpacing: '0.4px'
             }}>
               SIH 2026
@@ -125,12 +121,6 @@ export function Header({
 
         {/* Real Hardware WebSocket Stream Status */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px' }}>
-          <div style={{
-            width: '7px',
-            height: '7px',
-            borderRadius: '50%',
-            background: '#10b981'
-          }} className="pulse-circle" />
           <span style={{ color: '#94a3b8' }}>Hardware WebSocket:</span>
           <span style={{ fontWeight: 700, color: '#34d399' }}>
             CONNECTED
@@ -155,8 +145,7 @@ export function Header({
             letterSpacing: '0.4px'
           }}
         >
-          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399' }} className="pulse-circle" />
-          <span>⚡ ESP32 Real Sensor Stream</span>
+          <span>ESP32 Real Sensor Stream</span>
         </div>
       </div>
     </header>
