@@ -552,7 +552,7 @@ export function OverviewView({
               fontFamily: 'JetBrains Mono',
               marginTop: '4px'
             }}>
-              {selectedNode.flameDetected ? 'FLAME TRIP' : 'CLEAR'}
+              {selectedNode.flameDetected ? '🔥 FLAME (1)' : 'CLEAR (0)'}
             </div>
             <span style={{ fontSize: '9px', color: '#64748b' }}>Flame IR (Pin 33)</span>
           </div>
@@ -560,8 +560,8 @@ export function OverviewView({
           {/* 5. Seismic Vibration */}
           <div className="glass-card" style={{ padding: '10px 12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Activity size={14} color="#f59e0b" />
-              <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Vibration</span>
+              <Activity size={14} color={selectedNode.vibration ? '#ef4444' : '#10b981'} />
+              <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Vibration Frequency</span>
             </div>
             <div style={{
               fontSize: '15px',
@@ -570,7 +570,7 @@ export function OverviewView({
               fontFamily: 'JetBrains Mono',
               marginTop: '4px'
             }}>
-              {selectedNode.vibration ? 'MOTION DETECTED' : 'NORMAL'}
+              {selectedNode.vibration ? `${selectedNode.vibrationFreq || 380} Hz (TREMOR)` : '0 Hz (NOMINAL)'}
             </div>
             <span style={{ fontSize: '9px', color: '#64748b' }}>SW-420 (Pin 32)</span>
           </div>

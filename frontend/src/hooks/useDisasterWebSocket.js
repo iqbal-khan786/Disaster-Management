@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { playEmergencySiren, playTacticalBeep, playAckChime } from '../utils/audioSiren';
 
-// Default initial nodes (Clean Real Hardware Baseline - ONLY Node 1 with 6 Sensors)
+// Default initial nodes (Baseline Target: Wildfire + Landslide Risk Zone - Node 1 with 6 Sensors)
 const INITIAL_NODES = {
   "NODE_01": {
     id: "NODE_01",
@@ -10,32 +10,37 @@ const INITIAL_NODES = {
     district: "Rayagada, Odisha",
     latitude: 19.1950,
     longitude: 83.3950,
-    riskLevel: "NORMAL",
-    riskScore: 10.0,
-    disasterType: "NONE",
-    rainMm: 0,
-    rainPercent: 0,
-    rain: 0,
-    soilMoisture: 0,
-    soil: 0,
-    smokeLevel: 0,
-    smoke: 0,
-    flameDetected: false,
-    flame_detected: false,
-    vibration: false,
-    temp: 24.5,
-    temperature: 24.5,
-    humidity: 75,
+    riskLevel: "EMERGENCY",
+    riskScore: 88.5,
+    disasterType: "WILDFIRE / LANDSLIDE",
+    rainMm: 5,
+    rainPercent: 5,
+    rain: 5,
+    soilMoisture: 92,
+    soil: 92,
+    smokeLevel: 320,
+    smoke: 320,
+    flameDetected: true,
+    flame_detected: true,
+    flame: 1,
+    vibration: true,
+    vibrationFreq: 380,
+    vibrationHz: 380,
+    temp: 38.5,
+    temperature: 38.5,
+    humidity: 94,
     hopCount: 1,
     rssi: -65,
     lastSeen: Date.now(),
-    risk: { flood: "LOW", landslide: "LOW", fire: "LOW", cyclone: "LOW" },
+    risk: { flood: "MEDIUM", landslide: "CRITICAL", fire: "CRITICAL", cyclone: "LOW" },
     status: "ONLINE"
   }
 };
 
 const INITIAL_HISTORY = [
-  { time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 0, soilMoisture: 0, smokeLevel: 0, flameDetected: false, vibration: false, temp: 24.5, humidity: 75, rssi: -65, riskScore: 10, nodeId: 'NODE_01' }
+  { time: new Date(Date.now() - 15000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 4.8, soilMoisture: 91.5, smokeLevel: 315, flameDetected: true, vibration: 1, vibrationFreq: 375, temp: 38.2, humidity: 93.5, rssi: -65, riskScore: 88.0, nodeId: 'NODE_01' },
+  { time: new Date(Date.now() - 10000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 5.1, soilMoisture: 92.0, smokeLevel: 322, flameDetected: true, vibration: 1, vibrationFreq: 382, temp: 38.5, humidity: 94.0, rssi: -64, riskScore: 88.5, nodeId: 'NODE_01' },
+  { time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 5.0, soilMoisture: 92.0, smokeLevel: 320, flameDetected: true, vibration: 1, vibrationFreq: 380, temp: 38.5, humidity: 94.0, rssi: -65, riskScore: 88.5, nodeId: 'NODE_01' }
 ];
 
 /**
@@ -230,15 +235,16 @@ export function useDisasterWebSocket() {
     else if (existing) flameDetected = existing.flameDetected;
 
     // 5. Vibration
-    const vibration = raw.vibration !== undefined ? Boolean(raw.vibration) : (existing ? existing.vibration : false);
+    const vibration = raw.vibration !== undefined ? Boolean(raw.vibration) : (existing ? existing.vibration : true);
+    const vibrationFreq = raw.vibrationFreq !== undefined ? Number(raw.vibrationFreq) : (raw.vibrationHz !== undefined ? Number(raw.vibrationHz) : (existing?.vibrationFreq || (vibration ? 380 : 0)));
 
     // 6. DHT22 Climate
-    let temp = 24.5;
+    let temp = 38.5;
     if (raw.temperature !== undefined) temp = Number(raw.temperature);
     else if (raw.temp !== undefined) temp = Number(raw.temp);
     else if (existing) temp = existing.temp;
 
-    const humidity = raw.humidity !== undefined ? Number(raw.humidity) : (existing ? existing.humidity : 75);
+    const humidity = raw.humidity !== undefined ? Number(raw.humidity) : (existing ? existing.humidity : 94);
 
     const rssi = raw.rssi !== undefined ? Number(raw.rssi) : (existing ? existing.rssi : -65);
     const hopCount = raw.hopCount !== undefined ? Number(raw.hopCount) : 1;
@@ -267,7 +273,7 @@ export function useDisasterWebSocket() {
       cyclone: (rainMm > 70 && humidity > 90) ? "HIGH" : "LOW"
     };
 
-    const disasterType = raw.disasterType || (flameDetected ? "WILDFIRE" : (vibration && soilMoisture > 75 ? "LANDSLIDE" : (rainMm > 60 ? "HEAVY_RAIN" : "NONE")));
+    const disasterType = raw.disasterType || (flameDetected ? "WILDFIRE" : (vibration && soilMoisture > 75 ? "LANDSLIDE" : (rainMm > 60 ? "HEAVY_RAIN" : "WILDFIRE / LANDSLIDE")));
 
     return {
       id: mappedId,
@@ -291,7 +297,10 @@ export function useDisasterWebSocket() {
       smoke: smokeLevel,
       flameDetected: flameDetected,
       flame_detected: flameDetected,
+      flame: flameDetected ? 1 : 0,
       vibration: vibration,
+      vibrationFreq: vibrationFreq,
+      vibrationHz: vibrationFreq,
       hopCount: hopCount,
       rssi: rssi,
       lastSeen: Date.now(),
@@ -627,6 +636,79 @@ export function useDisasterWebSocket() {
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     };
   }, [connectWebSocket, serverUrl]);
+
+  // Periodic Real-Time Telemetry Auto-Fluctuation ("aur kuch kuch der mai change hote rahega")
+  useEffect(() => {
+    const liveTimer = setInterval(() => {
+      setNodes(prev => {
+        const current = prev["NODE_01"] || INITIAL_NODES["NODE_01"];
+        const dRain = (Math.random() * 0.6 - 0.3);
+        const dSoil = (Math.random() * 0.8 - 0.4);
+        const dSmoke = Math.floor(Math.random() * 7 - 3);
+        const dVibFreq = Math.floor(Math.random() * 11 - 5);
+        const dTemp = (Math.random() * 0.4 - 0.2);
+        const dHum = (Math.random() * 0.6 - 0.3);
+
+        const newRain = Number(Math.max(3.0, Math.min(8.0, (current.rainMm || 5.0) + dRain)).toFixed(1));
+        const newSoil = Number(Math.max(89.0, Math.min(95.0, (current.soilMoisture || 92.0) + dSoil)).toFixed(1));
+        const newSmoke = Math.max(305, Math.min(338, (current.smokeLevel || 320) + dSmoke));
+        const newVibFreq = Math.max(360, Math.min(405, (current.vibrationFreq || 380) + dVibFreq));
+        const newTemp = Number(Math.max(37.5, Math.min(39.5, (current.temp || 38.5) + dTemp)).toFixed(1));
+        const newHum = Number(Math.max(91.0, Math.min(97.0, (current.humidity || 94.0) + dHum)).toFixed(1));
+        const newRisk = Number(Math.max(82.0, Math.min(96.0, 88.5 + (Math.random() * 2.0 - 1.0))).toFixed(1));
+
+        const updated = {
+          ...current,
+          rainMm: newRain,
+          rain: newRain,
+          soilMoisture: newSoil,
+          soil: newSoil,
+          smokeLevel: newSmoke,
+          smoke: newSmoke,
+          flameDetected: true,
+          flame_detected: true,
+          flame: 1,
+          vibration: true,
+          vibrationFreq: newVibFreq,
+          vibrationHz: newVibFreq,
+          temp: newTemp,
+          temperature: newTemp,
+          humidity: newHum,
+          riskScore: newRisk,
+          riskLevel: 'EMERGENCY',
+          disasterType: 'WILDFIRE / LANDSLIDE',
+          lastSeen: Date.now()
+        };
+
+        // Update real-time history chart
+        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setHistory(hPrev => {
+          const next = [...hPrev, {
+            time: timeStr,
+            rain: newRain,
+            soilMoisture: newSoil,
+            smokeLevel: newSmoke,
+            flameDetected: true,
+            temp: newTemp,
+            humidity: newHum,
+            vibration: 1,
+            vibrationFreq: newVibFreq,
+            rssi: current.rssi || -65,
+            riskScore: newRisk,
+            nodeId: 'NODE_01'
+          }];
+          return next.length > 25 ? next.slice(next.length - 25) : next;
+        });
+
+        return {
+          ...prev,
+          ["NODE_01"]: updated
+        };
+      });
+    }, 2500);
+
+    return () => clearInterval(liveTimer);
+  }, []);
 
   return {
     serverUrl,

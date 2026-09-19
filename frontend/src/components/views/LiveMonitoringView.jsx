@@ -306,12 +306,15 @@ export function LiveMonitoringView({
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
             <span style={{
-              fontSize: '22px',
+              fontSize: '24px',
               fontWeight: 900,
               color: currentNode.vibration ? '#ef4444' : '#10b981',
               fontFamily: 'JetBrains Mono'
             }}>
-              {currentNode.vibration ? 'MOTION DETECTED' : 'NORMAL (STABLE)'}
+              {currentNode.vibration ? `${currentNode.vibrationFreq || 380} Hz` : '0 Hz (STABLE)'}
+            </span>
+            <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+              {currentNode.vibration ? '🚨 Debris Shock Detected' : 'Quiescent Baseline'}
             </span>
           </div>
 
@@ -324,7 +327,7 @@ export function LiveMonitoringView({
             color: currentNode.vibration ? '#fca5a5' : '#86efac'
           }}>
             {currentNode.vibration
-              ? 'Warning: Slope micro-vibrations detected. High landslide/debris probability!'
+              ? `Warning: High-frequency seismic shock (${currentNode.vibrationFreq || 380} Hz) detected! Slope instability / Landslide warning.`
               : 'Slope integrity is currently stable with zero abnormal tremors.'}
           </div>
         </div>

@@ -162,7 +162,7 @@ export function VillageCardList({ nodes, onOpenDispatch, onSelectNode }) {
                   color: node.vibration ? '#ef4444' : '#10b981',
                   fontFamily: 'JetBrains Mono'
                 }}>
-                  {node.vibration ? 'DETECT' : 'CLEAR'}
+                  {node.vibration ? `${node.vibrationFreq || 380}Hz` : 'CLEAR'}
                 </div>
               </div>
 
