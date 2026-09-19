@@ -584,33 +584,6 @@ export function OverviewView({
             </div>
             <span style={{ fontSize: '9px', color: '#64748b' }}>SW-420 Sensor</span>
           </div>
-
-          {/* 9. Battery Level */}
-          <div className="glass-card" style={{ padding: '10px 12px' }}>
-            <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Battery Reserve</span>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#10b981', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
-              {selectedNode.battery || 90}% <span style={{ fontSize: '11px', color: '#64748b' }}>({selectedNode.batteryVoltage || 4.1}V)</span>
-            </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Solar 18650 Li-ion</span>
-          </div>
-
-          {/* 10. LoRa Signal RSSI */}
-          <div className="glass-card" style={{ padding: '10px 12px' }}>
-            <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Signal / RSSI</span>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#a855f7', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
-              {selectedNode.rssi || -68} <span style={{ fontSize: '11px', color: '#64748b' }}>dBm</span>
-            </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Hop Count: {selectedNode.hopCount || 1}</span>
-          </div>
-
-          {/* 11. Location GPS */}
-          <div className="glass-card" style={{ padding: '10px 12px' }}>
-            <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Location Coordinates</span>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#cbd5e1', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
-              {selectedNode.latitude?.toFixed(4)}°N, {selectedNode.longitude?.toFixed(4)}°E
-            </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>{selectedNode.district || 'Rayagada'}</span>
-          </div>
         </div>
       </div>
 
