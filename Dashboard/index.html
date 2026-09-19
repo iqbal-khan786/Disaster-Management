@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIH 2024 | IoT Multi-Village Disaster Command Center (WebSocket Live)</title>
+  
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-dark: #070b14;
+      --panel-bg: rgba(15, 23, 42, 0.88);
+      --card-bg: rgba(30, 41, 59, 0.75);
+      --border-color: rgba(56, 189, 248, 0.25);
+      --border-glow: rgba(56, 189, 248, 0.4);
+      --emergency: #ef4444;
+      --emergency-glow: rgba(239, 68, 68, 0.4);
+      --warning: #f59e0b;
+      --normal: #10b981;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Outfit', sans-serif; }
+    body {
+      background: radial-gradient(circle at 50% 0%, #111e38, var(--bg-dark));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      background: rgba(11, 17, 33, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .brand-section { display: flex; align-items: center; gap: 14px; }
+    .sih-badge {
+      background: linear-gradient(135deg, #ff9933, #ffffff 50%, #138808);
+      color: #000;
+      font-weight: 800;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+    .brand-title h1 { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 0.3px; }
+    .brand-title p { font-size: 11px; color: var(--text-dim); }
+
+    .header-status { display: flex; align-items: center; gap: 12px; }
+    
+    .ws-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: var(--emergency);
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    .ws-badge.connected {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: var(--normal);
+    }
+    .pulse-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: currentColor;
+      animation: pulseAnim 1.6s infinite;
+    }
+    @keyframes pulseAnim {
+      0% { transform: scale(0.9); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.4; }
+      100% { transform: scale(0.9); opacity: 1; }
+    }
+
+    .btn-ws-cfg {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid var(--border-color);
+      color: var(--accent);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-ws-cfg:hover { background: var(--accent); color: #000; }
+
+    /* Main Command Dashboard Layout */
+    .dashboard-container {
+      display: grid;
+      grid-template-columns: 1fr 430px;
+      gap: 18px;
+      padding: 18px;
+      flex: 1;
+    }
+
+    .map-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-header h2 { font-size: 14px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.8px; }
+
+    #map {
+      width: 100%;
+      height: 400px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 10;
+    }
+
+    /* Charts & Analytics Row */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 6px;
+    }
+    .chart-box {
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 12px;
+      height: 180px;
+    }
+    .chart-box h4 { font-size: 11px; color: var(--text-dim); margin-bottom: 6px; }
+
+    /* Sidebar Right Panel */
+    .sidebar-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ws-connection-bar {
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 8px 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+    }
+    .ws-connection-bar input {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      padding: 5px 10px;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      flex: 1;
+    }
+    .ws-connection-bar button {
+      background: var(--accent);
+      border: none;
+      color: #000;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .alert-banner {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.05));
+      border: 1px solid var(--emergency);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      animation: alertPulse 2s infinite alternate;
+    }
+    @keyframes alertPulse {
+      from { box-shadow: 0 0 10px var(--emergency-glow); }
+      to { box-shadow: 0 0 25px var(--emergency-glow); }
+    }
+
+    .alert-text h3 { font-size: 13px; color: #ff6b6b; font-weight: 700; }
+    .alert-text p { font-size: 11px; color: #fecaca; }
+
+    .node-list-container {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .village-node-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 14px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+    .village-node-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    
+    .village-node-card.emergency {
+      border-left: 4px solid var(--emergency);
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.15), var(--card-bg));
+    }
+    .village-node-card.warning {
+      border-left: 4px solid var(--warning);
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.12), var(--card-bg));
+    }
+    .village-node-card.normal {
+      border-left: 4px solid var(--normal);
+    }
+
+    .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .node-name { font-size: 14px; font-weight: 700; color: #fff; }
+    .risk-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+    }
+    .risk-badge.emergency { background: var(--emergency); color: #fff; }
+    .risk-badge.warning { background: var(--warning); color: #000; }
+    .risk-badge.normal { background: var(--normal); color: #000; }
+
+    .sensor-stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin: 10px 0;
+    }
+    .stat-pill {
+      background: rgba(0,0,0,0.35);
+      border-radius: 6px;
+      padding: 6px 4px;
+      text-align: center;
+    }
+    .stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; }
+    .stat-value { font-size: 12px; font-weight: 700; color: #fff; font-family: 'JetBrains Mono', monospace; }
+
+    .btn-action-dispatch {
+      width: 100%;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-action-dispatch:hover { background: #dc2626; box-shadow: 0 4px 15px var(--emergency-glow); }
+
+    /* Live Radio Packet Terminal */
+    .terminal-panel {
+      background: #040711;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      height: 140px;
+      overflow-y: auto;
+    }
+    .terminal-line { margin-bottom: 3px; color: #64748b; }
+    .terminal-line.ws { color: #a78bfa; }
+    .terminal-line.rx { color: #38bdf8; }
+    .terminal-line.ack { color: #10b981; }
+    .terminal-line.danger { color: #ef4444; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-section">
+      <span class="sih-badge">SIH 2024</span>
+      <div class="brand-title">
+        <h1>Multi-Village Disaster Early Warning Command Hub</h1>
+        <p>Real-Time LoRa SX1278 Mesh • WebSocket Streaming Stream (Port 81) • Offline AP</p>
+      </div>
+    </div>
+    <div class="header-status">
+      <button class="btn-ws-cfg" onclick="simulateDisasterSpike()">⚡ Simulate Spike</button>
+      <div class="ws-badge" id="wsStatusBadge">
+        <div class="pulse-dot"></div>
+        <span id="wsStatusText">WebSocket Connecting...</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-container">
+    <!-- Left: Map & Sensor Telemetry Graphs -->
+    <div class="map-card">
+      <div class="panel-header">
+        <h2>Geographical Topography & Sensor Nodes Map</h2>
+        <span style="font-size:11px; color:var(--accent);">Live GPS Stream (Sub-millisecond)</span>
+      </div>
+      <div id="map"></div>
+
+      <div class="analytics-grid">
+        <div class="chart-box">
+          <h4>WATER LEVEL (m) & RAINFALL INTENSITY (%) [REAL-TIME]</h4>
+          <canvas id="waterChart"></canvas>
+        </div>
+        <div class="chart-box">
+          <h4>VILLAGE WEIGHTED RISK SCORE PROGRESSION (0-100)</h4>
+          <canvas id="riskChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Threat Level Cards & Logs -->
+    <div class="sidebar-panel">
+      
+      <!-- WebSocket Connection Bar -->
+      <div class="ws-connection-bar">
+        <span style="font-weight:600; color:var(--text-dim);">WS Server:</span>
+        <input type="text" id="wsUrlInput" value="ws://192.168.4.1:81/" placeholder="ws://<ESP32-IP>:81/" />
+        <button onclick="reconnectWebSocket()">Connect</button>
+      </div>
+
+      <div class="alert-banner" id="activeAlertBanner">
+        <div class="alert-text">
+          <h3 id="alertTitle">🚨 CRITICAL FLOOD & LANDSLIDE WARNING</h3>
+          <p id="alertDesc">Village 1 water level 1.8m above threshold (Score: 82/100)</p>
+        </div>
+        <button class="btn-ws-cfg" style="background:#ef4444; color:#fff; border:none;" onclick="triggerHardwareSiren()">🔊 Sound Siren</button>
+      </div>
+
+      <div class="node-list-container">
+        <div class="panel-header">
+          <h2>Active Monitored Sectors</h2>
+          <span style="font-size:12px; color:var(--accent);" id="nodeCount">2 Nodes</span>
+        </div>
+
+        <div id="nodesList">
+          <!-- Populated in Real-Time by WebSocket -->
+        </div>
+
+        <div class="panel-header" style="margin-top:4px;">
+          <h2>Live LoRa Radio & WebSocket Terminal</h2>
+          <span style="font-size:10px; color:var(--text-dim);">Auto-scrolling Stream</span>
+        </div>
+        <div class="terminal-panel" id="terminal">
+          <div class="terminal-line">[SYS] Base Station Control Dashboard Initialized.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Audio Siren Synthesizer using Web Audio API
+    let audioCtx = null;
+    function playAudioSiren() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        
+        const now = audioCtx.currentTime;
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(1800, now + 0.35);
+        osc.frequency.exponentialRampToValueAtTime(800, now + 0.7);
+        
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.75);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.75);
+      } catch (e) {
+        console.log("Audio siren error", e);
+      }
+    }
+
+    // Leaflet Map Init (High-Res Real Satellite - Rayagada District, Odisha)
+    const map = L.map('map').setView([19.2000, 83.3750], 12);
+    
+    // Real-Life ESRI HD Satellite Base Layer
+    const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: 'Esri World Imagery (High-Res Satellite)'
+    }).addTo(map);
+
+    // Real-Life Place Names & Road Labels Overlay
+    const labelsLayer = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      opacity: 0.95
+    }).addTo(map);
+
+    let markers = {};
+    let villageNodes = {
+      "V1": {
+        id: "V1",
+        name: "Village 1: Kashipur Valley (Flood Epicenter)",
+        latitude: 19.2400,
+        longitude: 83.3300,
+        riskLevel: "EMERGENCY",
+        riskScore: 88.0,
+        disasterType: "CRITICAL FLASH FLOOD",
+        rain: 95,
+        soil: 96,
+        waterLevel: 2.25,
+        battery: 4.02,
+        hopCount: 1,
+        rssi: -64
+      },
+      "V2": {
+        id: "V2",
+        name: "Village 2: Kolnara Ridge (Relay Repeater)",
+        latitude: 19.1950,
+        longitude: 83.3950,
+        riskLevel: "NORMAL",
+        riskScore: 18.0,
+        disasterType: "NONE",
+        rain: 22,
+        soil: 35,
+        waterLevel: 0.40,
+        battery: 4.18,
+        hopCount: 2,
+        rssi: -76
+      }
+    };
+
+    // Chart.js Graphs Setup
+    const ctxWater = document.getElementById('waterChart').getContext('2d');
+    const waterChart = new Chart(ctxWater, {
+      type: 'line',
+      data: {
+        labels: ['14:25', '14:26', '14:27', '14:28', '14:29', '14:30', '14:31'],
+        datasets: [
+          { label: 'Water Depth (m)', data: [0.4, 0.6, 0.9, 1.2, 1.5, 1.7, 1.8], borderColor: '#38bdf8', borderWidth: 2, tension: 0.3, fill: false },
+          { label: 'Rain Intensity (%)', data: [30, 45, 60, 75, 82, 85, 88], borderColor: '#818cf8', borderWidth: 2, tension: 0.3, fill: false }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { font: { size: 9 }, color: '#94a3b8' } }, y: { ticks: { font: { size: 9 }, color: '#94a3b8' } } }, plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } } }
+    });
+
+    const ctxRisk = document.getElementById('riskChart').getContext('2d');
+    const riskChart = new Chart(ctxRisk, {
+      type: 'line',
+      data: {
+        labels: ['14:25', '14:26', '14:27', '14:28', '14:29', '14:30', '14:31'],
+        datasets: [
+          { label: 'Village 1 Risk', data: [28, 42, 58, 68, 76, 80, 82], borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.15)', borderWidth: 2, fill: true, tension: 0.3 },
+          { label: 'Village 2 Risk', data: [10, 11, 12, 12, 13, 14, 14], borderColor: '#10b981', borderWidth: 2, fill: false, tension: 0.3 }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { font: { size: 9 }, color: '#94a3b8' } }, y: { max: 100, min: 0, ticks: { font: { size: 9 }, color: '#94a3b8' } } }, plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } } }
+    });
+
+    function logTerminal(text, type='normal') {
+      const term = document.getElementById('terminal');
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = 'terminal-line ' + type;
+      div.textContent = `[${time}] ${text}`;
+      term.insertBefore(div, term.firstChild);
+    }
+
+    function renderUI() {
+      const nodes = Object.values(villageNodes);
+      document.getElementById('nodeCount').innerText = `${nodes.length} Nodes Active`;
+      const container = document.getElementById('nodesList');
+      container.innerHTML = '';
+
+      nodes.forEach(n => {
+        const isEmerg = n.riskLevel === 'EMERGENCY' || n.riskScore >= 70;
+        const isWarn = n.riskLevel === 'WARNING' || (n.riskScore >= 40 && n.riskScore < 70);
+        const card = document.createElement('div');
+        card.className = `village-node-card ${isEmerg ? 'emergency' : (isWarn ? 'warning' : 'normal')}`;
+
+        card.innerHTML = `
+          <div class="card-top">
+            <span class="node-name">${n.name || ('Village ' + n.id)}</span>
+            <span class="risk-badge ${isEmerg ? 'emergency' : (isWarn ? 'warning' : 'normal')}">
+              ${n.riskLevel} (${Math.round(n.riskScore)}/100)
+            </span>
+          </div>
+          <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">
+            📍 ${Number(n.latitude).toFixed(4)}°N, ${Number(n.longitude).toFixed(4)}°E • Hop: ${n.hopCount || 1} • RSSI: ${n.rssi || -70}dBm
+          </div>
+          <div class="sensor-stats-row">
+            <div class="stat-pill"><div class="stat-label">Rain</div><div class="stat-value">${n.rain || 0}%</div></div>
+            <div class="stat-pill"><div class="stat-label">Water</div><div class="stat-value">${Number(n.waterLevel || 0).toFixed(1)}m</div></div>
+            <div class="stat-pill"><div class="stat-label">Smoke</div><div class="stat-value" style="color:${(n.smoke > 40)?'#ef4444':'#10b981'}">${n.smoke !== undefined ? n.smoke + '%' : (n.flame || 8) + '%'}</div></div>
+            <div class="stat-pill"><div class="stat-label">Soil</div><div class="stat-value">${n.soil || 0}%</div></div>
+            <div class="stat-pill"><div class="stat-label">Battery</div><div class="stat-value">${Number(n.battery || 4.0).toFixed(2)}V</div></div>
+          </div>
+          ${isEmerg ? `
+            <button class="btn-action-dispatch" onclick="dispatchRescue('${n.id}', '${n.latitude}', '${n.longitude}')">
+              🚨 DISPATCH NDRF RESCUE SQUAD (WEBSOCKET)
+            </button>
+          ` : ''}
+        `;
+        container.appendChild(card);
+
+        // Update Map Markers
+        const markerColor = isEmerg ? '#ef4444' : (isWarn ? '#f59e0b' : '#10b981');
+        if (!markers[n.id]) {
+          const marker = L.circleMarker([n.latitude, n.longitude], {
+            radius: 12,
+            fillColor: markerColor,
+            color: '#fff',
+            weight: 2,
+            fillOpacity: 0.9
+          }).addTo(map);
+          marker.bindPopup(`<b>${n.name || ('Village ' + n.id)}</b><br>Threat: ${n.riskLevel} (${Math.round(n.riskScore)}/100)<br>Event: ${n.disasterType || 'None'}`);
+          markers[n.id] = marker;
+        } else {
+          markers[n.id].setLatLng([n.latitude, n.longitude]);
+          markers[n.id].setStyle({ fillColor: markerColor });
+        }
+      });
+    }
+
+    // ======================== WEBSOCKET REAL-TIME ENGINE ========================
+    let ws = null;
+    let reconnectTimer = null;
+
+    function initWebSocket(customUrl) {
+      if (ws) {
+        ws.close();
+      }
+
+      let host = window.location.hostname;
+      if (!host || host === 'localhost' || host === '127.0.0.1') {
+        host = '192.168.4.1'; // Default ESP32 AP IP
+      }
+      
+      const targetUrl = customUrl || document.getElementById('wsUrlInput').value || `ws://${host}:81/`;
+      document.getElementById('wsUrlInput').value = targetUrl;
+      
+      logTerminal(`[WS] Attempting WebSocket connection to ${targetUrl}...`, 'ws');
+
+      try {
+        ws = new WebSocket(targetUrl);
+
+        ws.onopen = function() {
+          const badge = document.getElementById('wsStatusBadge');
+          badge.className = 'ws-badge connected';
+          document.getElementById('wsStatusText').innerText = 'WEBSOCKET STREAM LIVE (81)';
+          logTerminal(`[WS] ✅ Connected to ESP32 Gateway (${targetUrl})`, 'ack');
+          
+          // Request all stored node data
+          ws.send(JSON.stringify({ cmd: "GET_ALL" }));
+          
+          if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+          }
+        };
+
+        ws.onmessage = function(event) {
+          try {
+            const data = JSON.parse(event.data);
+            handleIncomingPacket(data);
+          } catch (e) {
+            logTerminal(`[WS RX RAW] ${event.data}`, 'rx');
+          }
+        };
+
+        ws.onclose = function() {
+          const badge = document.getElementById('wsStatusBadge');
+          badge.className = 'ws-badge';
+          document.getElementById('wsStatusText').innerText = 'WS OFFLINE (Reconnecting...)';
+          logTerminal(`[WS] ⚠️ WebSocket Disconnected. Auto-reconnecting in 2.5s...`, 'danger');
+          
+          if (!reconnectTimer) {
+            reconnectTimer = setTimeout(() => {
+              reconnectTimer = null;
+              initWebSocket();
+            }, 2500);
+          }
+        };
+
+        ws.onerror = function(err) {
+          console.warn("WebSocket Error:", err);
+        };
+      } catch (err) {
+        logTerminal(`[WS ERROR] ${err.message}`, 'danger');
+      }
+    }
+
+    function reconnectWebSocket() {
+      const url = document.getElementById('wsUrlInput').value;
+      initWebSocket(url);
+    }
+
+    function sendWsCommand(cmd, payload={}) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        const msg = JSON.stringify({ cmd: cmd, ...payload, timestamp: Date.now() });
+        ws.send(msg);
+        logTerminal(`[WS TX] Command sent: ${msg}`, 'ws');
+        return true;
+      } else {
+        logTerminal(`[WS] ⚠️ WebSocket not connected. Command simulated locally.`, 'danger');
+        return false;
+      }
+    }
+
+    function triggerHardwareSiren() {
+      playAudioSiren();
+      sendWsCommand("SIREN", { duration: 2000 });
+      logTerminal(`[CMD] 🚨 Siren Trigger Signal broadcasted to Base Station!`, 'danger');
+    }
+
+    function dispatchRescue(id, lat, lng) {
+      playAudioSiren();
+      sendWsCommand("DISPATCH", { node: id, lat: lat, lng: lng });
+      alert(`🚁 RESCUE MOBILIZATION TRIGGERED VIA WEBSOCKET!\n\nTarget: Node ${id}\nCoordinates: ${lat}N, ${lng}E\nStatus: Tactical Boat & Air Squad Dispatched with live GPS.`);
+      logTerminal(`[DISPATCH] 🚁 NDRF Team Alpha deployed to Node ${id} (${lat}, ${lng})`, 'danger');
+    }
+
+    function handleIncomingPacket(data) {
+      const items = Array.isArray(data) ? data : [data];
+
+      items.forEach(node => {
+        if (!node.id) return;
+        
+        villageNodes[node.id] = { ...villageNodes[node.id], ...node };
+        const isEmerg = node.riskLevel === 'EMERGENCY' || node.riskScore >= 70;
+
+        logTerminal(`[LoRa/WS RX] Node ${node.id} | ${node.riskLevel} | Score: ${node.riskScore}/100 | H2O: ${node.waterLevel}m | Hop: ${node.hopCount || 1}`, isEmerg ? 'danger' : 'rx');
+
+        if (isEmerg) {
+          playAudioSiren();
+          document.getElementById('alertTitle').innerText = `🚨 CRITICAL EMERGENCY AT VILLAGE ${node.id}`;
+          document.getElementById('alertDesc').innerText = `Event: ${node.disasterType || 'FLOOD'} | Water: ${node.waterLevel}m | Risk Score: ${node.riskScore}/100`;
+        }
+
+        // Update Charts
+        const timeLabel = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+        if (waterChart.data.labels.length > 12) {
+          waterChart.data.labels.shift();
+          waterChart.data.datasets[0].data.shift();
+          waterChart.data.datasets[1].data.shift();
+          riskChart.data.labels.shift();
+          riskChart.data.datasets[0].data.shift();
+        }
+
+        waterChart.data.labels.push(timeLabel);
+        waterChart.data.datasets[0].data.push(node.waterLevel || 0);
+        waterChart.data.datasets[1].data.push(node.rain || 0);
+        waterChart.update('none');
+
+        riskChart.data.labels.push(timeLabel);
+        riskChart.data.datasets[0].data.push(node.riskScore || 0);
+        riskChart.update('none');
+      });
+
+      renderUI();
+    }
+
+    function simulateDisasterSpike() {
+      playAudioSiren();
+      const mockSpike = {
+        event: "telemetry",
+        id: "V1",
+        riskLevel: "EMERGENCY",
+        disasterType: "FLASH FLOOD + LANDSLIDE",
+        latitude: 28.3974,
+        longitude: 84.1240,
+        riskScore: 94.5,
+        rain: 98,
+        soil: 96,
+        waterLevel: 2.35,
+        battery: 3.98,
+        hopCount: 1,
+        rssi: -62
+      };
+
+      handleIncomingPacket(mockSpike);
+      sendWsCommand("SIMULATE", mockSpike);
+    }
+
+    // Auto-connect on page load
+    window.addEventListener('load', () => {
+      renderUI();
+      initWebSocket();
+    });
+  </script>
+</body>
+</html>
