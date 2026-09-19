@@ -117,7 +117,7 @@ export function VillageCardList({ nodes, onOpenDispatch, onSelectNode }) {
               </div>
             )}
 
-            {/* Multi-Sensor Metrics Grid */}
+            {/* Multi-Sensor Metrics Grid (6 Physical Sensors) */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(5, 1fr)',
@@ -128,26 +128,26 @@ export function VillageCardList({ nodes, onOpenDispatch, onSelectNode }) {
                 <div style={{ fontSize: '10px', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
                   <CloudRain size={10} /> RAIN
                 </div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', fontFamily: 'JetBrains Mono' }}>
-                  {node.rain || 0}%
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#818cf8', fontFamily: 'JetBrains Mono' }}>
+                  {node.rainMm || node.rain || 0}mm
                 </div>
               </div>
 
               <div style={{ background: 'rgba(0, 0, 0, 0.35)', padding: '6px 4px', borderRadius: '6px', textAlign: 'center' }}>
                 <div style={{ fontSize: '10px', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-                  <Droplets size={10} /> WATER
+                  <Mountain size={10} /> SOIL
                 </div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#38bdf8', fontFamily: 'JetBrains Mono' }}>
-                  {Number(node.waterLevel || 0).toFixed(1)}m
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#10b981', fontFamily: 'JetBrains Mono' }}>
+                  {node.soilMoisture || node.soil || 0}%
                 </div>
               </div>
 
               <div style={{ background: 'rgba(0, 0, 0, 0.35)', padding: '6px 4px', borderRadius: '6px', textAlign: 'center' }}>
                 <div style={{ fontSize: '10px', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-                  <Wind size={10} /> SMOKE
+                  <Flame size={10} /> SMOKE
                 </div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: (node.smoke > 40) ? '#ef4444' : '#10b981', fontFamily: 'JetBrains Mono' }}>
-                  {node.smoke !== undefined ? `${node.smoke}%` : `${node.flame || 12}%`}
+                <div style={{ fontSize: '12px', fontWeight: 700, color: (node.smokeLevel > 80 || node.smoke > 80) ? '#ef4444' : '#f59e0b', fontFamily: 'JetBrains Mono' }}>
+                  {node.smokeLevel || node.smoke || 0}PPM
                 </div>
               </div>
 
@@ -167,10 +167,10 @@ export function VillageCardList({ nodes, onOpenDispatch, onSelectNode }) {
 
               <div style={{ background: 'rgba(0, 0, 0, 0.35)', padding: '6px 4px', borderRadius: '6px', textAlign: 'center' }}>
                 <div style={{ fontSize: '10px', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-                  <BatteryCharging size={10} /> BAT
+                  <Thermometer size={10} /> TEMP
                 </div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', fontFamily: 'JetBrains Mono' }}>
-                  {Number(node.battery || 4.0).toFixed(2)}V
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#f43f5e', fontFamily: 'JetBrains Mono' }}>
+                  {node.temp || 24.5}°C
                 </div>
               </div>
             </div>

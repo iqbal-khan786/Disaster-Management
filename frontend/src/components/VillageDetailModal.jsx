@@ -5,9 +5,9 @@ import {
   Activity,
   CloudRain,
   Send,
-  Waves,
   Mountain,
-  Flame
+  Flame,
+  Zap
 } from 'lucide-react';
 
 export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allNodes: _allNodes = {} }) {
@@ -15,10 +15,9 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
 
   const isCritical = node.riskLevel === 'CRITICAL' || node.riskLevel === 'EMERGENCY' || (node.riskScore >= 75);
 
-  const waterCm = node.waterLevelCm !== undefined ? node.waterLevelCm : (node.waterLevel !== undefined ? Math.round(node.waterLevel * 100) : 0);
-  const waterM = node.waterLevelM !== undefined ? node.waterLevelM : (waterCm / 100).toFixed(2);
   const rain = node.rainMm !== undefined ? node.rainMm : (node.rain !== undefined ? node.rain : 0);
   const soil = node.soilMoisture !== undefined ? node.soilMoisture : (node.soil !== undefined ? node.soil : 0);
+  const smoke = node.smokeLevel !== undefined ? node.smokeLevel : (node.smoke !== undefined ? node.smoke : 0);
 
   const getRiskColor = (level) => {
     switch (level) {
@@ -127,7 +126,7 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
               Active Disaster State: {node.disasterType || 'ENVIRONMENTAL MONITORING'}
             </div>
             <div style={{ fontSize: '10px', color: '#cbd5e1', marginTop: '2px' }}>
-              Relayed over LoRa Mesh via Hop {node.hopCount || 1} • Signal Strength: {node.rssi || -68} dBm
+              Relayed over LoRa Mesh via Hop {node.hopCount || 1} • Signal Strength: {node.rssi || -65} dBm
             </div>
           </div>
 
@@ -156,37 +155,25 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
           </button>
         </div>
 
-        {/* 6 Key Environmental Sensors Grid */}
+        {/* 6 Physical Sensors Grid */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '12px'
         }}>
-          {/* 1. Water Level */}
-          <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#38bdf8' }}>
-              <Waves size={16} />
-              <span style={{ fontSize: '11px', fontWeight: 700 }}>Water Level</span>
-            </div>
-            <div style={{ fontSize: '20px', fontWeight: 800, color: '#38bdf8', fontFamily: 'JetBrains Mono' }}>
-              {waterCm} cm <span style={{ fontSize: '11px', color: '#94a3b8' }}>({waterM}m)</span>
-            </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>JSN-SR04T Waterproof Ultrasonic</span>
-          </div>
-
-          {/* 2. Rainfall */}
+          {/* 1. Rainfall (Rain Sensor Pin 34) */}
           <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#818cf8' }}>
               <CloudRain size={16} />
-              <span style={{ fontSize: '11px', fontWeight: 700 }}>Precipitation</span>
+              <span style={{ fontSize: '11px', fontWeight: 700 }}>Rainfall Precipitation</span>
             </div>
             <div style={{ fontSize: '20px', fontWeight: 800, color: '#818cf8', fontFamily: 'JetBrains Mono' }}>
               {rain} mm/h
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Tipping Bucket Rain Gauge</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>Rain Sensor (Pin 34)</span>
           </div>
 
-          {/* 3. Soil Moisture */}
+          {/* 2. Soil Moisture (Pin 35) */}
           <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10b981' }}>
               <Mountain size={16} />
@@ -195,47 +182,59 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
             <div style={{ fontSize: '20px', fontWeight: 800, color: '#10b981', fontFamily: 'JetBrains Mono' }}>
               {soil}%
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Capacitive Soil Sensor v1.2</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>Soil Moisture Sensor (Pin 35)</span>
           </div>
 
-          {/* 4. Seismic Vibration */}
+          {/* 3. Smoke & Gas (MQ-2 Pin 39) */}
+          <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f59e0b' }}>
+              <Flame size={16} />
+              <span style={{ fontSize: '11px', fontWeight: 700 }}>Smoke & Gas</span>
+            </div>
+            <div style={{ fontSize: '20px', fontWeight: 800, color: '#f59e0b', fontFamily: 'JetBrains Mono' }}>
+              {smoke} PPM
+            </div>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>MQ-2 Gas Sensor (Pin 39)</span>
+          </div>
+
+          {/* 4. Flame IR Detection (Pin 33) */}
+          <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: node.flameDetected ? '#ef4444' : '#10b981' }}>
+              <Zap size={16} />
+              <span style={{ fontSize: '11px', fontWeight: 700 }}>Flame Optical Sensor</span>
+            </div>
+            <div style={{ fontSize: '16px', fontWeight: 800, color: node.flameDetected ? '#ef4444' : '#10b981', fontFamily: 'JetBrains Mono' }}>
+              {node.flameDetected ? 'FLAME DETECTED' : 'CLEAR'}
+            </div>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>Flame IR Sensor (Pin 33)</span>
+          </div>
+
+          {/* 5. Seismic Vibration (SW-420 Pin 32) */}
           <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f59e0b' }}>
               <Activity size={16} />
               <span style={{ fontSize: '11px', fontWeight: 700 }}>Seismic Tremor</span>
             </div>
             <div style={{ fontSize: '15px', fontWeight: 800, color: node.vibration ? '#ef4444' : '#10b981', fontFamily: 'JetBrains Mono' }}>
-              {node.vibration ? 'TREMOR ACTIVE' : 'STABLE'}
+              {node.vibration ? 'MOTION DETECTED' : 'STABLE'}
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>SW-420 Motion Sensor</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>SW-420 Motion Sensor (Pin 32)</span>
           </div>
 
-          {/* 5. Smoke / Gas */}
-          <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444' }}>
-              <Flame size={16} />
-              <span style={{ fontSize: '11px', fontWeight: 700 }}>Smoke & Gas</span>
-            </div>
-            <div style={{ fontSize: '20px', fontWeight: 800, color: '#ef4444', fontFamily: 'JetBrains Mono' }}>
-              {node.smokeLevel || 0} PPM
-            </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>MQ-2 Gas Sensor</span>
-          </div>
-
-          {/* 6. Climate (Temp / Humidity) */}
+          {/* 6. Climate (Temp / Humidity DHT22 Pin 4) */}
           <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#06b6d4' }}>
               <Thermometer size={16} />
               <span style={{ fontSize: '11px', fontWeight: 700 }}>Ambient Climate</span>
             </div>
             <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', fontFamily: 'JetBrains Mono' }}>
-              {node.temp || 24}°C <span style={{ fontSize: '12px', color: '#06b6d4' }}>({node.humidity || 70}%)</span>
+              {node.temp || 24.5}°C <span style={{ fontSize: '12px', color: '#06b6d4' }}>({node.humidity || 75}%)</span>
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Sensirion DHT22</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>DHT22 Sensor (Pin 4)</span>
           </div>
         </div>
 
-        {/* Hardware & Battery Diagnostic Panel */}
+        {/* Hardware & Power Diagnostic Panel */}
         <div style={{
           background: 'rgba(255, 255, 255, 0.02)',
           border: '1px solid rgba(255, 255, 255, 0.06)',
@@ -249,28 +248,28 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
           <div>
             <span style={{ color: '#94a3b8' }}>Battery Voltage:</span>
             <div style={{ fontWeight: 800, color: '#10b981', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
-              {node.batteryVoltage || 4.1}V ({node.battery || 90}%)
+              {node.batteryVoltage || 3.95}V ({node.battery || 72}%)
             </div>
           </div>
 
           <div>
             <span style={{ color: '#94a3b8' }}>RF Transceiver:</span>
             <div style={{ fontWeight: 800, color: '#38bdf8', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
-              SX1278 433MHz
+              SX1278 433MHz LoRa
             </div>
           </div>
 
           <div>
-            <span style={{ color: '#94a3b8' }}>LoRa Hop Count:</span>
+            <span style={{ color: '#94a3b8' }}>Active Sensors:</span>
             <div style={{ fontWeight: 800, color: '#a855f7', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
-              Hop {node.hopCount || 1} Relay
+              6 Physical Sensors
             </div>
           </div>
 
           <div>
             <span style={{ color: '#94a3b8' }}>Packet RSSI:</span>
             <div style={{ fontWeight: 800, color: '#f59e0b', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
-              {node.rssi || -68} dBm
+              {node.rssi || -65} dBm
             </div>
           </div>
         </div>

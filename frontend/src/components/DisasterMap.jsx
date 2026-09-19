@@ -453,7 +453,7 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
             box-shadow: 0 2px 8px rgba(0,0,0,0.8);
             z-index: 3;
           ">
-            ${node.id}: ${nodeElev} ${isEmerg ? '• 💧 2.25m' : '• NOMINAL'}
+            ${node.id}: ${nodeElev} ${isEmerg ? '• ⚠️ HIGH RISK' : '• NOMINAL'}
           </div>
         </div>
       `;
@@ -474,14 +474,14 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
               <span style="background:${color}; color:#fff; font-size:10px; padding:2px 7px; border-radius:8px; font-weight:bold;">${Math.round(node.riskScore)}/100</span>
             </div>
             <div style="font-size:11px; color:#1e293b; margin-bottom:6px; line-height:1.4;">
-              <b>Elevation:</b> ${nodeElev}<br/>
-              <b>Role:</b> ${isV1 ? '🔴 Isolated Disaster Zone (Roads/Towers Cut)' : '🟢 Mountain Line-of-Sight Relay Node'}<br/>
+              <b>Sector:</b> ${node.district || 'Rayagada District'}<br/>
               <b>Disaster Threat:</b> <span style="color:${color};font-weight:bold;">${node.disasterType || 'Normal'}</span><br/>
-              <b>Water Depth:</b> ${node.waterLevel}m | <b>Rain:</b> ${node.rain}%<br/>
-              <b>Smoke/Gas:</b> ${node.smoke !== undefined ? node.smoke + '%' : 'Clean'} | <b>Soil:</b> ${node.soil}% | <b>Vib:</b> ${node.vibration ? 'DETECTED' : 'CLEAR'}
+              <b>Rainfall:</b> ${node.rainMm || 0} mm/h | <b>Soil:</b> ${node.soilMoisture || 0}%<br/>
+              <b>Smoke/Gas:</b> ${node.smokeLevel || 0} PPM | <b>Flame:</b> ${node.flameDetected ? 'YES' : 'NO'}<br/>
+              <b>Vibration:</b> ${node.vibration ? 'MOTION DETECTED' : 'NORMAL'} | <b>Climate:</b> ${node.temp || 24.5}°C / ${node.humidity || 75}%
             </div>
             <div style="font-size:10px; color:#64748b; font-family:monospace; background:#f1f5f9; padding:3px 6px; border-radius:4px; margin-bottom:8px;">
-              📍 GPS: ${node.latitude.toFixed(4)}°N, ${node.longitude.toFixed(4)}°E • RSSI: ${node.rssi || -64}dBm
+              📍 GPS: ${node.latitude.toFixed(4)}°N, ${node.longitude.toFixed(4)}°E • RSSI: ${node.rssi || -65}dBm
             </div>
             <button
               onclick="window.__onSelectVillageNode && window.__onSelectVillageNode('${node.id}')"

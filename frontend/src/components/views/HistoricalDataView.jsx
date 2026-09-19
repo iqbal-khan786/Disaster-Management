@@ -3,15 +3,19 @@ import {
   History,
   Download,
   FileText,
+  FileDown,
   Search
 } from 'lucide-react';
+import { generateDisasterPDFReport } from '../../utils/generatePdfReport';
 
-export function HistoricalDataView({ history = [], nodes: _nodes = {} }) {
+export function HistoricalDataView({ history = [], nodes = {} }) {
   const [timeRange, setTimeRange] = useState('1h'); // 1h, 6h, 24h, 7d
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVillageFilter, setSelectedVillageFilter] = useState('all');
 
-  // Synthetic expansion for realistic historical logs
+  const currentNode = nodes["NODE_01"] || Object.values(nodes)[0] || {};
+
+  // Historical telemetry logs formatted for the 6 physical sensors
   const historicalLogs = React.useMemo(() => {
     const base = [...history];
     const expanded = [];
@@ -19,19 +23,21 @@ export function HistoricalDataView({ history = [], nodes: _nodes = {} }) {
 
     for (let i = 0; i < 20; i++) {
       const pastTime = new Date(now - i * 1000 * 60 * 3).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const sample = base[i % base.length] || { waterLevel: 0, rain: 0, soilMoisture: 0, temp: 24.5, humidity: 75, vibration: 0, rssi: -65, riskScore: 10 };
+      const sample = base[i % base.length] || { rain: 0, soilMoisture: 0, smokeLevel: 0, flameDetected: false, vibration: false, temp: 24.5, humidity: 75, rssi: -65, riskScore: 10 };
       expanded.push({
         id: `LOG-${1000 + i}`,
         time: pastTime,
         nodeId: 'NODE_01',
         village: 'Village 1: Kashipur Valley',
-        waterLevel: sample.waterLevel || 0,
-        rain: sample.rain || 0,
-        soilMoisture: sample.soilMoisture || 0,
-        temp: sample.temp || 24.5,
-        humidity: sample.humidity || 75,
-        riskScore: sample.riskScore || 10,
-        rssi: sample.rssi || -65
+        rain: sample.rain ?? sample.rainMm ?? 0,
+        soilMoisture: sample.soilMoisture ?? sample.soil ?? 0,
+        smokeLevel: sample.smokeLevel ?? sample.smoke ?? 0,
+        flameDetected: sample.flameDetected ?? sample.flame_detected ?? false,
+        vibration: sample.vibration ?? false,
+        temp: sample.temp ?? sample.temperature ?? 24.5,
+        humidity: sample.humidity ?? 75,
+        riskScore: sample.riskScore ?? 10,
+        rssi: sample.rssi ?? -65
       });
     }
     return expanded;
@@ -43,15 +49,24 @@ export function HistoricalDataView({ history = [], nodes: _nodes = {} }) {
     return true;
   });
 
-  // Statistical calculations
-  const peakWater = Math.max(...historicalLogs.map(l => l.waterLevel), 0);
+  // Statistical calculations across the 6 physical sensors
   const maxRain = Math.max(...historicalLogs.map(l => l.rain), 0);
+  const avgSoil = (historicalLogs.reduce((acc, l) => acc + l.soilMoisture, 0) / (historicalLogs.length || 1)).toFixed(0);
+  const maxSmoke = Math.max(...historicalLogs.map(l => l.smokeLevel), 0);
   const avgTemp = (historicalLogs.reduce((acc, l) => acc + l.temp, 0) / (historicalLogs.length || 1)).toFixed(1);
 
   // Export handlers
+  const exportPDF = () => {
+    generateDisasterPDFReport({
+      logs: filteredLogs,
+      currentNode,
+      summaryStats: { maxRain, avgSoil, maxSmoke, avgTemp }
+    });
+  };
+
   const exportCSV = () => {
-    const headers = "Log ID,Timestamp,Node ID,Village,Water Level (cm),Rainfall (mm/h),Soil Moisture (%),Temp (C),Humidity (%),Risk Score,RSSI (dBm)\n";
-    const rows = filteredLogs.map(l => `${l.id},${l.time},${l.nodeId},"${l.village}",${l.waterLevel},${l.rain},${l.soilMoisture},${l.temp},${l.humidity},${l.riskScore},${l.rssi}`).join("\n");
+    const headers = "Log ID,Timestamp,Node ID,Village,Rainfall (mm/h),Soil Moisture (%),Smoke (PPM),Flame Detected,Vibration Detected,Temp (C),Humidity (%),Risk Score,RSSI (dBm)\n";
+    const rows = filteredLogs.map(l => `${l.id},${l.time},${l.nodeId},"${l.village}",${l.rain},${l.soilMoisture},${l.smokeLevel},${l.flameDetected ? 'YES' : 'NO'},${l.vibration ? 'YES' : 'NO'},${l.temp},${l.humidity},${l.riskScore},${l.rssi}`).join("\n");
     const blob = new Blob([headers + rows], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -79,15 +94,37 @@ export function HistoricalDataView({ history = [], nodes: _nodes = {} }) {
         <div>
           <h2 style={{ fontSize: '16px', fontWeight: 800, color: '#f8fafc', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <History size={18} color="#38bdf8" />
-            Historical Telemetry Logs & Analysis
+            Historical Telemetry Logs & PDF Reporting
           </h2>
           <p style={{ fontSize: '11px', color: '#94a3b8', margin: '3px 0 0' }}>
-            Stored Environmental Sensor Records • SQLite & LoRa Packet Audit Log
+            Stored 6-Sensor Environmental Records • Official OSDMA & DEOC Audit Generator
           </p>
         </div>
 
         {/* Export Buttons */}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            onClick={exportPDF}
+            className="action-btn"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 14px',
+              borderRadius: '6px',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(185, 28, 28, 0.35))',
+              color: '#fca5a5',
+              fontSize: '11px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(239, 68, 68, 0.2)'
+            }}
+          >
+            <FileDown size={14} color="#ef4444" />
+            <span>Export Official PDF Report</span>
+          </button>
+
           <button
             onClick={exportCSV}
             className="action-btn"
@@ -132,42 +169,42 @@ export function HistoricalDataView({ history = [], nodes: _nodes = {} }) {
         </div>
       </div>
 
-      {/* Summary KPI Stats */}
+      {/* Summary KPI Stats (6 Physical Sensors) */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
         gap: '12px'
       }}>
         <div className="glass-card" style={{ padding: '14px' }}>
-          <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Peak Flood Depth</span>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#38bdf8', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
-            {peakWater} <span style={{ fontSize: '12px', color: '#64748b' }}>cm</span>
-          </div>
-          <span style={{ fontSize: '10px', color: '#94a3b8' }}>Recorded at Village 1 (Kashipur)</span>
-        </div>
-
-        <div className="glass-card" style={{ padding: '14px' }}>
           <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Max Rainfall Intensity</span>
           <div style={{ fontSize: '22px', fontWeight: 800, color: '#818cf8', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
             {maxRain} <span style={{ fontSize: '12px', color: '#64748b' }}>mm/h</span>
           </div>
-          <span style={{ fontSize: '10px', color: '#94a3b8' }}>Monsoon Peak Precipitation</span>
+          <span style={{ fontSize: '10px', color: '#94a3b8' }}>Rain Sensor (Pin 34)</span>
         </div>
 
         <div className="glass-card" style={{ padding: '14px' }}>
-          <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Mean Ambient Temperature</span>
+          <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Mean Soil Moisture</span>
+          <div style={{ fontSize: '22px', fontWeight: 800, color: '#10b981', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
+            {avgSoil} <span style={{ fontSize: '12px', color: '#64748b' }}>%</span>
+          </div>
+          <span style={{ fontSize: '10px', color: '#94a3b8' }}>Soil Saturation (Pin 35)</span>
+        </div>
+
+        <div className="glass-card" style={{ padding: '14px' }}>
+          <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Peak Smoke / Gas Concentration</span>
+          <div style={{ fontSize: '22px', fontWeight: 800, color: '#f59e0b', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
+            {maxSmoke} <span style={{ fontSize: '12px', color: '#64748b' }}>PPM</span>
+          </div>
+          <span style={{ fontSize: '10px', color: '#94a3b8' }}>MQ-2 Sensor (Pin 39)</span>
+        </div>
+
+        <div className="glass-card" style={{ padding: '14px' }}>
+          <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Mean Temperature</span>
           <div style={{ fontSize: '22px', fontWeight: 800, color: '#f43f5e', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
             {avgTemp} <span style={{ fontSize: '12px', color: '#64748b' }}>°C</span>
           </div>
-          <span style={{ fontSize: '10px', color: '#94a3b8' }}>Sensirion DHT22 Telemetry</span>
-        </div>
-
-        <div className="glass-card" style={{ padding: '14px' }}>
-          <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>LoRa Packet Integrity</span>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#34d399', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
-            99.6%
-          </div>
-          <span style={{ fontSize: '10px', color: '#34d399' }}>Zero Packet Collision</span>
+          <span style={{ fontSize: '10px', color: '#94a3b8' }}>DHT22 Sensor (Pin 4)</span>
         </div>
       </div>
 
@@ -243,9 +280,11 @@ export function HistoricalDataView({ history = [], nodes: _nodes = {} }) {
                 <th style={{ padding: '8px' }}>Log ID</th>
                 <th style={{ padding: '8px' }}>Timestamp</th>
                 <th style={{ padding: '8px' }}>Node / Village</th>
-                <th style={{ padding: '8px' }}>Water Level</th>
                 <th style={{ padding: '8px' }}>Rainfall</th>
                 <th style={{ padding: '8px' }}>Soil Moisture</th>
+                <th style={{ padding: '8px' }}>Smoke (PPM)</th>
+                <th style={{ padding: '8px' }}>Flame</th>
+                <th style={{ padding: '8px' }}>Vibration</th>
                 <th style={{ padding: '8px' }}>Climate</th>
                 <th style={{ padding: '8px' }}>Risk Score</th>
                 <th style={{ padding: '8px' }}>Signal</th>
@@ -257,9 +296,15 @@ export function HistoricalDataView({ history = [], nodes: _nodes = {} }) {
                   <td style={{ padding: '8px', fontFamily: 'JetBrains Mono', color: '#64748b' }}>{log.id}</td>
                   <td style={{ padding: '8px', fontFamily: 'JetBrains Mono', color: '#cbd5e1' }}>{log.time}</td>
                   <td style={{ padding: '8px', fontWeight: 600 }}>{log.village}</td>
-                  <td style={{ padding: '8px', fontFamily: 'JetBrains Mono', color: '#38bdf8' }}>{log.waterLevel} cm</td>
                   <td style={{ padding: '8px', fontFamily: 'JetBrains Mono', color: '#818cf8' }}>{log.rain} mm/h</td>
                   <td style={{ padding: '8px', fontFamily: 'JetBrains Mono', color: '#10b981' }}>{log.soilMoisture}%</td>
+                  <td style={{ padding: '8px', fontFamily: 'JetBrains Mono', color: '#f59e0b' }}>{log.smokeLevel} PPM</td>
+                  <td style={{ padding: '8px', fontFamily: 'JetBrains Mono', color: log.flameDetected ? '#ef4444' : '#10b981', fontWeight: 700 }}>
+                    {log.flameDetected ? 'FLAME' : 'CLEAR'}
+                  </td>
+                  <td style={{ padding: '8px', fontFamily: 'JetBrains Mono', color: log.vibration ? '#ef4444' : '#10b981', fontWeight: 700 }}>
+                    {log.vibration ? 'MOTION' : 'STABLE'}
+                  </td>
                   <td style={{ padding: '8px', color: '#94a3b8' }}>{log.temp}°C / {log.humidity}%</td>
                   <td style={{ padding: '8px', fontFamily: 'JetBrains Mono', color: log.riskScore > 60 ? '#ef4444' : '#34d399', fontWeight: 700 }}>
                     {log.riskScore}/100

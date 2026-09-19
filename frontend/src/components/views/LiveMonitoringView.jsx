@@ -5,7 +5,8 @@ import {
   Mountain,
   Flame,
   Thermometer,
-  Send
+  Send,
+  Zap
 } from 'lucide-react';
 
 export function LiveMonitoringView({
@@ -46,7 +47,7 @@ export function LiveMonitoringView({
             Live LoRa Sensor Telemetry Matrix
           </h2>
           <p style={{ fontSize: '11px', color: '#94a3b8', margin: '3px 0 0' }}>
-            High-Frequency Environmental & Geological Telemetry via 433MHz Mesh
+            High-Frequency Environmental & Geological Telemetry • 6 Physical IoT Sensors Array
           </p>
         </div>
 
@@ -130,8 +131,8 @@ export function LiveMonitoringView({
           <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', display: 'flex', gap: '14px' }}>
             <span>GPS: {currentNode.latitude?.toFixed(4)}°N, {currentNode.longitude?.toFixed(4)}°E</span>
             <span>LoRa Hop: {currentNode.hopCount || 1}</span>
-            <span>Signal: {currentNode.rssi || -68} dBm</span>
-            <span>Battery: {currentNode.battery || 90}% ({currentNode.batteryVoltage || 4.1}V)</span>
+            <span>Signal: {currentNode.rssi || -65} dBm</span>
+            <span>Battery: {currentNode.battery || 72}% ({currentNode.batteryVoltage || 3.95}V)</span>
           </div>
         </div>
 
@@ -159,51 +160,20 @@ export function LiveMonitoringView({
         </div>
       </div>
 
-      {/* Comprehensive Sensor Gauges Grid */}
+      {/* Comprehensive Sensor Gauges Grid (6 Physical Sensors) */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
         gap: '16px'
       }}>
-        {/* Sensor 1: Water Level (Ultrasonic JSN-SR04T) */}
-        <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Droplets size={18} color="#38bdf8" />
-              <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Water Level (River/Stream)</span>
-            </div>
-            <span style={{ fontSize: '10px', color: '#64748b' }}>JSN-SR04T Waterproof</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-            <span style={{ fontSize: '28px', fontWeight: 900, color: '#38bdf8', fontFamily: 'JetBrains Mono' }}>
-              {currentNode.waterLevelCm || 0}
-            </span>
-            <span style={{ fontSize: '13px', color: '#94a3b8' }}>cm ({currentNode.waterLevelM || 0} meters)</span>
-          </div>
-
-          <div className="gauge-bar-track">
-            <div className="gauge-bar-fill" style={{
-              width: `${Math.min(100, ((currentNode.waterLevelCm || 0) / 300) * 100)}%`,
-              background: (currentNode.waterLevelCm || 0) > 180 ? '#ef4444' : (currentNode.waterLevelCm || 0) > 100 ? '#f59e0b' : '#38bdf8'
-            }} />
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748b' }}>
-            <span>Safe: &lt;100cm</span>
-            <span>Warning: 150cm</span>
-            <span style={{ color: '#ef4444' }}>Danger: &gt;200cm</span>
-          </div>
-        </div>
-
-        {/* Sensor 2: Rainfall Intensity */}
+        {/* Sensor 1: Rainfall Intensity (Rain Sensor Pin 34) */}
         <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Droplets size={18} color="#818cf8" />
-              <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Precipitation / Rainfall</span>
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Rainfall Precipitation</span>
             </div>
-            <span style={{ fontSize: '10px', color: '#64748b' }}>Capacitive Tipping Gauge</span>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>Rain Sensor (Pin 34)</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
@@ -227,14 +197,14 @@ export function LiveMonitoringView({
           </div>
         </div>
 
-        {/* Sensor 3: Soil Moisture Content */}
+        {/* Sensor 2: Soil Moisture Content (Soil Sensor Pin 35) */}
         <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Mountain size={18} color="#10b981" />
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Soil Moisture & Saturation</span>
             </div>
-            <span style={{ fontSize: '10px', color: '#64748b' }}>Capacitive Soil v1.2</span>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>Soil v1.2 (Pin 35)</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
@@ -258,14 +228,80 @@ export function LiveMonitoringView({
           </div>
         </div>
 
-        {/* Sensor 4: Seismic / Slope Vibration (SW-420) */}
+        {/* Sensor 3: Smoke & Combustible Gas (MQ-2 Pin 39) */}
+        <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Flame size={18} color="#f59e0b" />
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Smoke & Combustible Gas</span>
+            </div>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>MQ-2 Sensor (Pin 39)</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+            <span style={{ fontSize: '28px', fontWeight: 900, color: '#f59e0b', fontFamily: 'JetBrains Mono' }}>
+              {currentNode.smokeLevel || 0}
+            </span>
+            <span style={{ fontSize: '13px', color: '#94a3b8' }}>PPM</span>
+          </div>
+
+          <div className="gauge-bar-track">
+            <div className="gauge-bar-fill" style={{
+              width: `${Math.min(100, ((currentNode.smokeLevel || 0) / 400) * 100)}%`,
+              background: (currentNode.smokeLevel || 0) > 150 ? '#ef4444' : (currentNode.smokeLevel || 0) > 60 ? '#f59e0b' : '#10b981'
+            }} />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748b' }}>
+            <span>Clean: &lt;50 PPM</span>
+            <span>Caution: 100 PPM</span>
+            <span style={{ color: '#ef4444' }}>Hazard: &gt;200 PPM</span>
+          </div>
+        </div>
+
+        {/* Sensor 4: Flame / Fire Detection (IR Optical Pin 33) */}
+        <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Zap size={18} color={currentNode.flameDetected ? '#ef4444' : '#10b981'} />
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Flame / Fire Optical Status</span>
+            </div>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>Flame IR (Pin 33)</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+            <span style={{
+              fontSize: '22px',
+              fontWeight: 900,
+              color: currentNode.flameDetected ? '#ef4444' : '#10b981',
+              fontFamily: 'JetBrains Mono'
+            }}>
+              {currentNode.flameDetected ? '🔥 FLAME DETECTED' : 'CLEAR (SAFE)'}
+            </span>
+          </div>
+
+          <div style={{
+            padding: '8px',
+            borderRadius: '6px',
+            background: currentNode.flameDetected ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.1)',
+            border: `1px solid ${currentNode.flameDetected ? '#ef4444' : '#10b981'}`,
+            fontSize: '11px',
+            color: currentNode.flameDetected ? '#fca5a5' : '#86efac'
+          }}>
+            {currentNode.flameDetected
+              ? 'CRITICAL ALERT: Infrared optical fire signature detected! Wildfire warning.'
+              : 'Nominal ambient IR baseline. No open flame or thermal ignition detected.'}
+          </div>
+        </div>
+
+        {/* Sensor 5: Seismic / Slope Vibration (SW-420 Pin 32) */}
         <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Activity size={18} color="#f59e0b" />
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Seismic / Slope Shift</span>
             </div>
-            <span style={{ fontSize: '10px', color: '#64748b' }}>SW-420 Vibration Switch</span>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>SW-420 Sensor (Pin 32)</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
@@ -288,69 +324,38 @@ export function LiveMonitoringView({
             color: currentNode.vibration ? '#fca5a5' : '#86efac'
           }}>
             {currentNode.vibration
-              ? 'Warning: Slope micro-vibrations detected. High landslide probability!'
+              ? 'Warning: Slope micro-vibrations detected. High landslide/debris probability!'
               : 'Slope integrity is currently stable with zero abnormal tremors.'}
           </div>
         </div>
 
-        {/* Sensor 5: Smoke & Combustible Gas (MQ-2) */}
-        <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Flame size={18} color="#ef4444" />
-              <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Smoke & Combustible Gas</span>
-            </div>
-            <span style={{ fontSize: '10px', color: '#64748b' }}>MQ-2 Gas Sensor</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-            <span style={{ fontSize: '28px', fontWeight: 900, color: '#ef4444', fontFamily: 'JetBrains Mono' }}>
-              {currentNode.smokeLevel || 0}
-            </span>
-            <span style={{ fontSize: '13px', color: '#94a3b8' }}>PPM (Parts Per Million)</span>
-          </div>
-
-          <div className="gauge-bar-track">
-            <div className="gauge-bar-fill" style={{
-              width: `${Math.min(100, ((currentNode.smokeLevel || 0) / 400) * 100)}%`,
-              background: (currentNode.smokeLevel || 0) > 150 ? '#ef4444' : (currentNode.smokeLevel || 0) > 60 ? '#f59e0b' : '#10b981'
-            }} />
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748b' }}>
-            <span>Clean: &lt;50 PPM</span>
-            <span>Caution: 100 PPM</span>
-            <span style={{ color: '#ef4444' }}>Hazard: &gt;200 PPM</span>
-          </div>
-        </div>
-
-        {/* Sensor 6: Atmospheric Temp & Humidity (DHT22) */}
+        {/* Sensor 6: Atmospheric Temp & Humidity (DHT22 Pin 4) */}
         <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Thermometer size={18} color="#06b6d4" />
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Ambient Climate</span>
             </div>
-            <span style={{ fontSize: '10px', color: '#64748b' }}>DHT22 / Sensirion</span>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>DHT22 Sensor (Pin 4)</span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <div>
               <span style={{ fontSize: '10px', color: '#94a3b8' }}>Temperature</span>
               <div style={{ fontSize: '22px', fontWeight: 800, color: '#f43f5e', fontFamily: 'JetBrains Mono' }}>
-                {currentNode.temp || 24}°C
+                {currentNode.temp || 24.5}°C
               </div>
             </div>
             <div>
               <span style={{ fontSize: '10px', color: '#94a3b8' }}>Rel. Humidity</span>
               <div style={{ fontSize: '22px', fontWeight: 800, color: '#06b6d4', fontFamily: 'JetBrains Mono' }}>
-                {currentNode.humidity || 70}%
+                {currentNode.humidity || 75}%
               </div>
             </div>
           </div>
 
           <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
-            Barometric Dewpoint: {Math.round((currentNode.temp || 24) - ((100 - (currentNode.humidity || 70)) / 5))}°C
+            Barometric Dewpoint: {Math.round((currentNode.temp || 24.5) - ((100 - (currentNode.humidity || 75)) / 5))}°C
           </div>
         </div>
       </div>

@@ -68,23 +68,27 @@ export function DisasterLifecycleDetails({ currentPhase, nodes, onOpenDispatch }
                 padding: '8px 12px',
                 borderRadius: '6px',
                 fontFamily: 'monospace',
-                fontSize: '12px',
+                fontSize: '11px',
                 color: '#a7f3d0'
               }}>
-                Risk = (Rain×0.35) + (Soil×0.30) + (Water×0.25) + (Vib×0.10)
+                Risk = (Rain×0.25) + (Soil×0.20) + (Vib×0.20) + (Flame×0.15) + (Smoke×0.10) + (Climate×0.10)
               </div>
-              <div style={{ fontSize: '11px', color: '#cbd5e1', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ fontSize: '11px', color: '#cbd5e1', display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Rainfall Accumulation:</span>
-                  <strong>{node1.rain || 95}%</strong>
+                  <span>Rainfall Precipitation:</span>
+                  <strong>{node1.rainMm || node1.rain || 0} mm/h</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Soil Moisture Saturation:</span>
-                  <strong>{node1.soilMoisture || 68}%</strong>
+                  <span>Soil Saturation:</span>
+                  <strong>{node1.soilMoisture || 0}%</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>River Water Level:</span>
-                  <strong>{node1.waterLevel ? `${node1.waterLevel.toFixed(1)}m` : '2.3m'} / 3.0m</strong>
+                  <span>Smoke & Gas:</span>
+                  <strong>{node1.smokeLevel || 0} PPM</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Flame & Vibration:</span>
+                  <strong>{node1.flameDetected ? 'FLAME' : 'CLEAR'} / {node1.vibration ? 'MOTION' : 'STABLE'}</strong>
                 </div>
               </div>
             </div>

@@ -11,7 +11,7 @@ import {
   Filler
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { Activity, Droplets, Mountain, Radio, Thermometer } from 'lucide-react';
+import { Activity, Droplets, Flame, Radio, Thermometer } from 'lucide-react';
 
 ChartJS.register(
   CategoryScale,
@@ -25,57 +25,57 @@ ChartJS.register(
 );
 
 export function SensorCharts({ history = [] }) {
-  const [activeChartTab, setActiveChartTab] = useState('water_rain');
+  const [activeChartTab, setActiveChartTab] = useState('rain_soil');
 
   const labels = history.map(h => h.time);
 
-  // 1. Water Level (cm) & Rainfall (mm)
-  const waterRainData = {
+  // 1. Rainfall (mm/h) & Soil Moisture (%)
+  const rainSoilData = {
     labels,
     datasets: [
       {
-        label: 'Water Depth (cm)',
-        data: history.map(h => h.waterLevel),
-        borderColor: '#38bdf8',
-        backgroundColor: 'rgba(56, 189, 248, 0.12)',
+        label: 'Rainfall Intensity (mm/h)',
+        data: history.map(h => h.rain || 0),
+        borderColor: '#818cf8',
+        backgroundColor: 'rgba(129, 140, 248, 0.12)',
         borderWidth: 2,
         tension: 0.35,
         fill: true,
-        yAxisID: 'yWater'
-      },
-      {
-        label: 'Rainfall (mm/h)',
-        data: history.map(h => h.rain),
-        borderColor: '#818cf8',
-        backgroundColor: 'rgba(129, 140, 248, 0.08)',
-        borderWidth: 2,
-        borderDash: [4, 4],
-        tension: 0.35,
-        fill: false,
         yAxisID: 'yRain'
-      }
-    ]
-  };
-
-  // 2. Soil Moisture (%) & Seismic Vibration
-  const soilVibrationData = {
-    labels,
-    datasets: [
+      },
       {
         label: 'Soil Moisture (%)',
         data: history.map(h => h.soilMoisture || 0),
         borderColor: '#10b981',
-        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+        backgroundColor: 'rgba(16, 185, 129, 0.08)',
+        borderWidth: 2,
+        borderDash: [4, 4],
+        tension: 0.35,
+        fill: false,
+        yAxisID: 'ySoil'
+      }
+    ]
+  };
+
+  // 2. Smoke & Gas (PPM) & Seismic Vibration (SW-420)
+  const smokeVibeData = {
+    labels,
+    datasets: [
+      {
+        label: 'Smoke / Gas (PPM)',
+        data: history.map(h => h.smokeLevel || h.smoke || 0),
+        borderColor: '#f59e0b',
+        backgroundColor: 'rgba(245, 158, 11, 0.12)',
         borderWidth: 2,
         tension: 0.35,
         fill: true,
-        yAxisID: 'ySoil'
+        yAxisID: 'ySmoke'
       },
       {
-        label: 'Seismic Vibration (SW-420 Active 1/0)',
+        label: 'Seismic Tremor (SW-420 Active 1/0)',
         data: history.map(h => (h.vibration ? 1 : 0)),
-        borderColor: '#f59e0b',
-        backgroundColor: 'rgba(245, 158, 11, 0.2)',
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.2)',
         borderWidth: 2,
         stepped: true,
         yAxisID: 'yVibe'
@@ -83,13 +83,13 @@ export function SensorCharts({ history = [] }) {
     ]
   };
 
-  // 3. Temperature (°C) & Humidity (%)
+  // 3. Temperature (°C) & Humidity (%) (DHT22)
   const tempHumidityData = {
     labels,
     datasets: [
       {
         label: 'Temperature (°C)',
-        data: history.map(h => h.temp || 24),
+        data: history.map(h => h.temp || 24.5),
         borderColor: '#f43f5e',
         backgroundColor: 'rgba(244, 63, 94, 0.1)',
         borderWidth: 2,
@@ -98,7 +98,7 @@ export function SensorCharts({ history = [] }) {
       },
       {
         label: 'Relative Humidity (%)',
-        data: history.map(h => h.humidity || 70),
+        data: history.map(h => h.humidity || 75),
         borderColor: '#06b6d4',
         backgroundColor: 'rgba(6, 182, 212, 0.1)',
         borderWidth: 2,
@@ -124,7 +124,7 @@ export function SensorCharts({ history = [] }) {
       },
       {
         label: 'LoRa RSSI (dBm)',
-        data: history.map(h => h.rssi || -70),
+        data: history.map(h => h.rssi || -65),
         borderColor: '#a855f7',
         borderWidth: 2,
         borderDash: [5, 5],
@@ -165,39 +165,40 @@ export function SensorCharts({ history = [] }) {
     }
   };
 
-  const waterRainOptions = {
+  const rainSoilOptions = {
     ...commonOptions,
     scales: {
       ...commonOptions.scales,
-      yWater: {
+      yRain: {
         type: 'linear',
         position: 'left',
         grid: { color: 'rgba(255, 255, 255, 0.05)' },
-        ticks: { color: '#38bdf8', font: { size: 9, family: 'JetBrains Mono' } },
-        title: { display: true, text: 'Water Level (cm)', color: '#38bdf8', font: { size: 9 } }
-      },
-      yRain: {
-        type: 'linear',
-        position: 'right',
-        grid: { drawOnChartArea: false },
         ticks: { color: '#818cf8', font: { size: 9, family: 'JetBrains Mono' } },
         title: { display: true, text: 'Rain (mm/h)', color: '#818cf8', font: { size: 9 } }
+      },
+      ySoil: {
+        type: 'linear',
+        position: 'right',
+        min: 0,
+        max: 100,
+        grid: { drawOnChartArea: false },
+        ticks: { color: '#10b981', font: { size: 9, family: 'JetBrains Mono' } },
+        title: { display: true, text: 'Soil Moisture (%)', color: '#10b981', font: { size: 9 } }
       }
     }
   };
 
-  const soilVibrationOptions = {
+  const smokeVibeOptions = {
     ...commonOptions,
     scales: {
       ...commonOptions.scales,
-      ySoil: {
+      ySmoke: {
         type: 'linear',
         position: 'left',
         min: 0,
-        max: 100,
         grid: { color: 'rgba(255, 255, 255, 0.05)' },
-        ticks: { color: '#10b981', font: { size: 9, family: 'JetBrains Mono' } },
-        title: { display: true, text: 'Soil Moisture (%)', color: '#10b981', font: { size: 9 } }
+        ticks: { color: '#f59e0b', font: { size: 9, family: 'JetBrains Mono' } },
+        title: { display: true, text: 'Smoke (PPM)', color: '#f59e0b', font: { size: 9 } }
       },
       yVibe: {
         type: 'linear',
@@ -205,8 +206,8 @@ export function SensorCharts({ history = [] }) {
         min: 0,
         max: 1.5,
         grid: { drawOnChartArea: false },
-        ticks: { color: '#f59e0b', stepSize: 1, font: { size: 9, family: 'JetBrains Mono' } },
-        title: { display: true, text: 'Vibration Status (1/0)', color: '#f59e0b', font: { size: 9 } }
+        ticks: { color: '#ef4444', stepSize: 1, font: { size: 9, family: 'JetBrains Mono' } },
+        title: { display: true, text: 'Vibration Status (1/0)', color: '#ef4444', font: { size: 9 } }
       }
     }
   };
@@ -266,7 +267,7 @@ export function SensorCharts({ history = [] }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Activity size={16} color="#38bdf8" />
           <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc', textTransform: 'uppercase', letterSpacing: '0.6px', margin: 0 }}>
-            Real-Time Telemetry Trend Streams
+            Real-Time Telemetry Trend Streams (6 Sensors)
           </h3>
           <span style={{ fontSize: '10px', color: '#64748b' }}>({history.length} Live Samples Buffer)</span>
         </div>
@@ -281,8 +282,8 @@ export function SensorCharts({ history = [] }) {
           border: '1px solid rgba(255, 255, 255, 0.06)'
         }}>
           {[
-            { id: 'water_rain', label: 'Water & Rain', icon: Droplets },
-            { id: 'soil_vibe', label: 'Soil & Seismic', icon: Mountain },
+            { id: 'rain_soil', label: 'Rain & Soil', icon: Droplets },
+            { id: 'smoke_vibe', label: 'Smoke & Vibration', icon: Flame },
             { id: 'temp_hum', label: 'Temp & Humidity', icon: Thermometer },
             { id: 'risk_signal', label: 'Risk & RSSI', icon: Radio }
           ].map(tab => {
@@ -317,8 +318,8 @@ export function SensorCharts({ history = [] }) {
 
       {/* Dynamic Chart Container */}
       <div style={{ height: '220px', position: 'relative', width: '100%' }}>
-        {activeChartTab === 'water_rain' && <Line data={waterRainData} options={waterRainOptions} />}
-        {activeChartTab === 'soil_vibe' && <Line data={soilVibrationData} options={soilVibrationOptions} />}
+        {activeChartTab === 'rain_soil' && <Line data={rainSoilData} options={rainSoilOptions} />}
+        {activeChartTab === 'smoke_vibe' && <Line data={smokeVibeData} options={smokeVibeOptions} />}
         {activeChartTab === 'temp_hum' && <Line data={tempHumidityData} options={tempHumidityOptions} />}
         {activeChartTab === 'risk_signal' && <Line data={signalRiskData} options={signalRiskOptions} />}
       </div>

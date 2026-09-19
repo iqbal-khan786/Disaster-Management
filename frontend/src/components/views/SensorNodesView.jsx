@@ -34,13 +34,13 @@ export function SensorNodesView({ nodes = {}, onSelectNode: _onSelectNode }) {
             ESP32 Sensor Nodes & LoRa Hardware Registry
           </h2>
           <p style={{ fontSize: '11px', color: '#94a3b8', margin: '3px 0 0' }}>
-            Rayagada District Offline Mesh Topology Nodes • Hardware Diagnostics & Power Profiles
+            Rayagada District Offline Mesh Topology • 6 Physical IoT Sensors Array & Diagnostics
           </p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '11px', color: '#34d399', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <CheckCircle2 size={13} /> {nodeList.length} Nodes Configured
+            <CheckCircle2 size={13} /> {nodeList.length} Node Configured
           </span>
         </div>
       </div>
@@ -76,7 +76,7 @@ export function SensorNodesView({ nodes = {}, onSelectNode: _onSelectNode }) {
                     </h3>
                   </div>
                   <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '3px' }}>
-                    Sector: {node.district || 'Rayagada District'} • Hop {node.hopCount || 1} Relay
+                    Sector: {node.district || 'Rayagada District'} • 6 Physical Sensors Array
                   </div>
                 </div>
 
@@ -113,18 +113,18 @@ export function SensorNodesView({ nodes = {}, onSelectNode: _onSelectNode }) {
                   <span style={{ color: '#38bdf8', fontWeight: 600 }}>Semtech SX1278 LoRa (433MHz +20dBm)</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#94a3b8' }}>Sensors Attached:</span>
+                  <span style={{ color: '#94a3b8' }}>6 Physical Sensors:</span>
                   <span style={{ color: '#cbd5e1', fontWeight: 500, fontSize: '10px' }}>
-                    JSN-SR04T, Soil v1.2, MQ-2, SW-420, Flame, DHT22
+                    Rain (P34), Soil (P35), MQ-2 (P39), Flame (P33), SW-420 (P32), DHT22 (P4)
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#94a3b8' }}>Power Architecture:</span>
-                  <span style={{ color: '#10b981', fontWeight: 600 }}>18650 Li-ion 3.7V + 5V 6W Solar Harvester</span>
+                  <span style={{ color: '#10b981', fontWeight: 600 }}>18650 Li-ion 3.7V + 5V Solar Harvester</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#94a3b8' }}>Firmware Build:</span>
-                  <span style={{ color: '#a855f7', fontFamily: 'JetBrains Mono' }}>DisasterGuard-Node-v2.6.4</span>
+                  <span style={{ color: '#a855f7', fontFamily: 'JetBrains Mono' }}>DisasterGuard-Node1-v3.0</span>
                 </div>
               </div>
 
@@ -135,7 +135,7 @@ export function SensorNodesView({ nodes = {}, onSelectNode: _onSelectNode }) {
                     <Battery size={12} color="#10b981" /> Battery Voltage
                   </div>
                   <div style={{ fontSize: '16px', fontWeight: 800, color: '#10b981', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
-                    {node.batteryVoltage || 4.1}V <span style={{ fontSize: '11px', color: '#94a3b8' }}>({node.battery || 90}%)</span>
+                    {node.batteryVoltage || 3.95}V <span style={{ fontSize: '11px', color: '#94a3b8' }}>({node.battery || 72}%)</span>
                   </div>
                 </div>
 
@@ -144,7 +144,7 @@ export function SensorNodesView({ nodes = {}, onSelectNode: _onSelectNode }) {
                     <Radio size={12} color="#a855f7" /> RSSI Signal
                   </div>
                   <div style={{ fontSize: '16px', fontWeight: 800, color: '#a855f7', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
-                    {node.rssi || -68} <span style={{ fontSize: '11px', color: '#94a3b8' }}>dBm</span>
+                    {node.rssi || -65} <span style={{ fontSize: '11px', color: '#94a3b8' }}>dBm</span>
                   </div>
                 </div>
               </div>

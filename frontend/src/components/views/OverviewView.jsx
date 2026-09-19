@@ -3,7 +3,7 @@ import {
   Activity,
   Radio,
   Wifi,
-  Waves,
+  Droplets,
   Mountain,
   Flame,
   Wind,
@@ -11,7 +11,9 @@ import {
   AlertTriangle,
   Server,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Zap,
+  Thermometer
 } from 'lucide-react';
 import { SensorCharts } from '../SensorCharts';
 
@@ -29,14 +31,14 @@ export function OverviewView({
   const criticalAlerts = alerts.filter(a => a.status === 'active' && (a.level === 'CRITICAL' || a.level === 'EMERGENCY'));
   const activeAlertsCount = alerts.filter(a => a.status === 'active').length;
 
-  // Selected node for live telemetry display (defaults to Node 1 or highest risk)
+  // Selected node for live telemetry display (defaults to Node 1)
   const [selectedNodeId, setSelectedNodeId] = useState("NODE_01");
   const selectedNode = nodes[selectedNodeId] || nodeList[0] || {};
 
   // Average RSSI calculation
   const avgRssi = nodeList.length > 0
-    ? Math.round(nodeList.reduce((acc, n) => acc + (n.rssi || -70), 0) / nodeList.length)
-    : -68;
+    ? Math.round(nodeList.reduce((acc, n) => acc + (n.rssi || -65), 0) / nodeList.length)
+    : -65;
 
   const getRiskColor = (level) => {
     switch (level) {
@@ -106,17 +108,17 @@ export function OverviewView({
             </div>
           </div>
 
-          {/* Card 2: Villages Monitored */}
+          {/* Card 2: Monitored Sector */}
           <div className="glass-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>Villages Monitored</span>
-              <Waves size={16} color="#06b6d4" />
+              <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>Sectors Monitored</span>
+              <Mountain size={16} color="#06b6d4" />
             </div>
             <div style={{ fontSize: '24px', fontWeight: 900, color: '#f8fafc', fontFamily: 'JetBrains Mono' }}>
-              {nodeList.length} <span style={{ fontSize: '13px', color: '#64748b' }}>Sectors</span>
+              {nodeList.length} <span style={{ fontSize: '13px', color: '#64748b' }}>Sector</span>
             </div>
             <div style={{ fontSize: '10px', color: '#94a3b8' }}>
-              Rayagada District (Nagavali Basin)
+              Rayagada District (Kashipur)
             </div>
           </div>
 
@@ -194,18 +196,18 @@ export function OverviewView({
       </div>
 
       {/* ========================================================================= */}
-      {/* SECTION B: DISASTER RISK OVERVIEW (4 CARDS)                               */}
+      {/* SECTION B: DISASTER RISK OVERVIEW (4 MULTI-HAZARD CARDS)                 */}
       {/* ========================================================================= */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <ShieldAlert size={16} color="#ef4444" />
             <h2 style={{ fontSize: '13px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.8px', margin: 0 }}>
-              Multi-Hazard AI Risk Assessments
+              Multi-Hazard AI Risk Assessments (6 Physical Sensors)
             </h2>
           </div>
           <span style={{ fontSize: '10px', color: '#64748b', fontStyle: 'italic' }}>
-            *Estimated risk scores computed via sensor fusion — Human verification required for emergency actions
+            *Estimated risk scores computed via sensor fusion (Rain, Soil, Vibration, Flame, Smoke, Climate)
           </span>
         </div>
 
@@ -214,7 +216,7 @@ export function OverviewView({
           gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
           gap: '14px'
         }}>
-          {/* Risk Card 1: Flood Risk */}
+          {/* Risk Card 1: Torrential Rain & Inundation */}
           <div className="glass-panel" style={{
             padding: '16px',
             borderLeft: `4px solid ${getRiskColor(selectedNode.risk?.flood || 'LOW')}`
@@ -222,11 +224,11 @@ export function OverviewView({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ padding: '6px', borderRadius: '6px', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
-                  <Waves size={18} />
+                  <Droplets size={18} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#f8fafc', margin: 0 }}>Flood Hazard</h3>
-                  <span style={{ fontSize: '10px', color: '#94a3b8' }}>River Inundation & Flash Flood</span>
+                  <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#f8fafc', margin: 0 }}>Heavy Precipitation</h3>
+                  <span style={{ fontSize: '10px', color: '#94a3b8' }}>Rainfall Intensity & Runoff</span>
                 </div>
               </div>
               <span style={{
@@ -244,14 +246,14 @@ export function OverviewView({
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '10px 0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-                <span style={{ color: '#94a3b8' }}>Confidence / Threat Level:</span>
+                <span style={{ color: '#94a3b8' }}>Rainfall Intensity Index:</span>
                 <span style={{ fontWeight: 800, color: '#f8fafc', fontFamily: 'JetBrains Mono' }}>
-                  {selectedNode.risk?.flood === 'CRITICAL' ? '94%' : selectedNode.risk?.flood === 'HIGH' ? '76%' : '18%'}
+                  {selectedNode.rainMm || 0} mm/h
                 </span>
               </div>
               <div className="gauge-bar-track">
                 <div className="gauge-bar-fill" style={{
-                  width: selectedNode.risk?.flood === 'CRITICAL' ? '94%' : selectedNode.risk?.flood === 'HIGH' ? '76%' : '18%',
+                  width: `${Math.min(100, ((selectedNode.rainMm || 0) / 100) * 100)}%`,
                   background: getRiskColor(selectedNode.risk?.flood || 'LOW')
                 }} />
               </div>
@@ -259,12 +261,12 @@ export function OverviewView({
 
             <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '8px', borderRadius: '6px', fontSize: '10px', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '3px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Water Level:</span>
-                <span style={{ color: '#38bdf8', fontWeight: 700 }}>{selectedNode.waterLevelCm || 0} cm ({selectedNode.waterLevelM || 0}m)</span>
+                <span>Precipitation Rate:</span>
+                <span style={{ color: '#818cf8', fontWeight: 700 }}>{selectedNode.rainMm || 0} mm/h</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Rainfall Intensity:</span>
-                <span style={{ color: '#818cf8', fontWeight: 700 }}>{selectedNode.rainMm || 0} mm/h</span>
+                <span>Soil Saturation:</span>
+                <span style={{ color: '#10b981', fontWeight: 700 }}>{selectedNode.soilMoisture || 0}%</span>
               </div>
             </div>
           </div>
@@ -281,7 +283,7 @@ export function OverviewView({
                 </div>
                 <div>
                   <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#f8fafc', margin: 0 }}>Landslide Hazard</h3>
-                  <span style={{ fontSize: '10px', color: '#94a3b8' }}>Slope Saturation & Shear Slip</span>
+                  <span style={{ fontSize: '10px', color: '#94a3b8' }}>Soil Moisture & Slope Tremors</span>
                 </div>
               </div>
               <span style={{
@@ -338,7 +340,7 @@ export function OverviewView({
                 </div>
                 <div>
                   <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#f8fafc', margin: 0 }}>Fire & Smoke</h3>
-                  <span style={{ fontSize: '10px', color: '#94a3b8' }}>Forest Fire & Toxic Gas Spike</span>
+                  <span style={{ fontSize: '10px', color: '#94a3b8' }}>Flame IR & MQ-2 Gas Sensor</span>
                 </div>
               </div>
               <span style={{
@@ -378,7 +380,7 @@ export function OverviewView({
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Ambient Temp:</span>
-                <span style={{ color: '#f43f5e', fontWeight: 700 }}>{selectedNode.temp || 24}°C</span>
+                <span style={{ color: '#f43f5e', fontWeight: 700 }}>{selectedNode.temp || 24.5}°C</span>
               </div>
             </div>
           </div>
@@ -394,8 +396,8 @@ export function OverviewView({
                   <Wind size={18} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#f8fafc', margin: 0 }}>Cyclone / Storm</h3>
-                  <span style={{ fontSize: '10px', color: '#94a3b8' }}>Gale Wind & Torrential Surge</span>
+                  <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#f8fafc', margin: 0 }}>Severe Storm</h3>
+                  <span style={{ fontSize: '10px', color: '#94a3b8' }}>High Wind & Torrential Surge</span>
                 </div>
               </div>
               <span style={{
@@ -429,12 +431,12 @@ export function OverviewView({
             <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '8px', borderRadius: '6px', fontSize: '10px', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '3px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Atmospheric Humidity:</span>
-                <span style={{ color: '#06b6d4', fontWeight: 700 }}>{selectedNode.humidity || 70}%</span>
+                <span style={{ color: '#06b6d4', fontWeight: 700 }}>{selectedNode.humidity || 75}%</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Gust Vibration:</span>
+                <span>Gust Tremor:</span>
                 <span style={{ color: selectedNode.vibration ? '#f59e0b' : '#10b981', fontWeight: 700 }}>
-                  {selectedNode.vibration ? 'HIGH GALE GUSTS' : 'LIGHT BREEZE'}
+                  {selectedNode.vibration ? 'HIGH GUST VIBRATION' : 'CALM / NOMINAL'}
                 </span>
               </div>
             </div>
@@ -443,14 +445,14 @@ export function OverviewView({
       </div>
 
       {/* ========================================================================= */}
-      {/* SECTION C: LIVE SENSOR TELEMETRY PANEL                                    */}
+      {/* SECTION C: LIVE SENSOR TELEMETRY PANEL (6 SENSORS)                        */}
       {/* ========================================================================= */}
       <div className="glass-panel" style={{ padding: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Radio size={16} color="#38bdf8" />
             <h2 style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc', textTransform: 'uppercase', letterSpacing: '0.8px', margin: 0 }}>
-              Live LoRa Sensor Telemetry Feed
+              Live Telemetry Feed (6 Physical Sensors)
             </h2>
           </div>
 
@@ -495,86 +497,74 @@ export function OverviewView({
           </div>
         </div>
 
-        {/* Telemetry 11-Reading Grid */}
+        {/* Telemetry 6-Physical Sensor Grid */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
           gap: '10px'
         }}>
-          {/* 1. Water Level */}
+          {/* 1. Rainfall Rate */}
           <div className="glass-card" style={{ padding: '10px 12px' }}>
-            <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Water Level</span>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#38bdf8', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
-              {selectedNode.waterLevelCm || 0} <span style={{ fontSize: '11px', color: '#64748b' }}>cm</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Droplets size={14} color="#818cf8" />
+              <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Rainfall Rate</span>
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>({selectedNode.waterLevelM || 0}m)</span>
-          </div>
-
-          {/* 2. Rainfall */}
-          <div className="glass-card" style={{ padding: '10px 12px' }}>
-            <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Rainfall Rate</span>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#818cf8', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
+            <div style={{ fontSize: '18px', fontWeight: 800, color: '#818cf8', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
               {selectedNode.rainMm || 0} <span style={{ fontSize: '11px', color: '#64748b' }}>mm/h</span>
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Capacitive Tipping</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>Rain Sensor (Pin 34)</span>
           </div>
 
-          {/* 3. Soil Moisture */}
+          {/* 2. Soil Moisture */}
           <div className="glass-card" style={{ padding: '10px 12px' }}>
-            <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Soil Moisture</span>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#10b981', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Mountain size={14} color="#10b981" />
+              <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Soil Moisture</span>
+            </div>
+            <div style={{ fontSize: '18px', fontWeight: 800, color: '#10b981', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
               {selectedNode.soilMoisture || 0} <span style={{ fontSize: '11px', color: '#64748b' }}>%</span>
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Capacitive v1.2</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>Soil Sensor (Pin 35)</span>
           </div>
 
-          {/* 4. Temperature */}
+          {/* 3. Smoke & Gas */}
           <div className="glass-card" style={{ padding: '10px 12px' }}>
-            <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Temperature</span>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#f43f5e', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
-              {selectedNode.temp || 24} <span style={{ fontSize: '11px', color: '#64748b' }}>°C</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Flame size={14} color="#f59e0b" />
+              <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Smoke / Gas</span>
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Sensirion / DHT22</span>
-          </div>
-
-          {/* 5. Humidity */}
-          <div className="glass-card" style={{ padding: '10px 12px' }}>
-            <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Humidity</span>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#06b6d4', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
-              {selectedNode.humidity || 70} <span style={{ fontSize: '11px', color: '#64748b' }}>%</span>
-            </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Relative RH</span>
-          </div>
-
-          {/* 6. Smoke / Gas */}
-          <div className="glass-card" style={{ padding: '10px 12px' }}>
-            <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Smoke / Gas</span>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#f59e0b', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
+            <div style={{ fontSize: '18px', fontWeight: 800, color: '#f59e0b', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
               {selectedNode.smokeLevel || 0} <span style={{ fontSize: '11px', color: '#64748b' }}>PPM</span>
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>MQ-2 Combustible</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>MQ-2 Sensor (Pin 39)</span>
           </div>
 
-          {/* 7. Flame Detection */}
+          {/* 4. Flame IR */}
           <div className="glass-card" style={{ padding: '10px 12px' }}>
-            <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Flame Status</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Zap size={14} color={selectedNode.flameDetected ? '#ef4444' : '#10b981'} />
+              <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Flame Detection</span>
+            </div>
             <div style={{
-              fontSize: '14px',
+              fontSize: '15px',
               fontWeight: 800,
               color: selectedNode.flameDetected ? '#ef4444' : '#10b981',
               fontFamily: 'JetBrains Mono',
               marginTop: '4px'
             }}>
-              {selectedNode.flameDetected ? 'FLAME ACTIVE' : 'CLEAR'}
+              {selectedNode.flameDetected ? 'FLAME TRIP' : 'CLEAR'}
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>IR Photodiode</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>Flame IR (Pin 33)</span>
           </div>
 
-          {/* 8. Seismic Vibration */}
+          {/* 5. Seismic Vibration */}
           <div className="glass-card" style={{ padding: '10px 12px' }}>
-            <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Vibration</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Activity size={14} color="#f59e0b" />
+              <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Vibration</span>
+            </div>
             <div style={{
-              fontSize: '14px',
+              fontSize: '15px',
               fontWeight: 800,
               color: selectedNode.vibration ? '#ef4444' : '#10b981',
               fontFamily: 'JetBrains Mono',
@@ -582,7 +572,19 @@ export function OverviewView({
             }}>
               {selectedNode.vibration ? 'MOTION DETECTED' : 'NORMAL'}
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>SW-420 Sensor</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>SW-420 (Pin 32)</span>
+          </div>
+
+          {/* 6. Climate (Temp / Hum) */}
+          <div className="glass-card" style={{ padding: '10px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Thermometer size={14} color="#06b6d4" />
+              <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Temp & Humidity</span>
+            </div>
+            <div style={{ fontSize: '16px', fontWeight: 800, color: '#f43f5e', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
+              {selectedNode.temp || 24.5}°C <span style={{ fontSize: '11px', color: '#06b6d4' }}>/ {selectedNode.humidity || 75}%</span>
+            </div>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>DHT22 (Pin 4)</span>
           </div>
         </div>
       </div>

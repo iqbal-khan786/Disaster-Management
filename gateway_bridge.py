@@ -1,14 +1,14 @@
 """
 ======================================================================================
   SMART INDIA HACKATHON (SIH 2026) — DISASTERGUARD IOT COMMAND CENTER
-  PYTHON SERIAL / HARDWARE TO WEBSOCKET GATEWAY BRIDGE
+  PYTHON SERIAL / HARDWARE TO WEBSOCKET GATEWAY BRIDGE (6 PHYSICAL SENSORS)
 ======================================================================================
   Usage:
   1. Auto-detect ESP32 on USB Serial and start WebSocket:
      python gateway_bridge.py
 
   2. Specify COM Port explicitly:
-     python gateway_bridge.py --port COM3 --baud 115200
+     python gateway_bridge.py --port COM4 --baud 115200
 
   3. Standalone Simulation Mode:
      python gateway_bridge.py --simulate
@@ -52,7 +52,7 @@ except ImportError:
 
 CONNECTED_CLIENTS = set()
 
-# Live State of Monitored Villages (100% Real Hardware Baseline - ONLY Node 1)
+# Live State of Monitored Villages (100% Real Hardware Baseline - Node 1 with 6 Sensors)
 LIVE_NODES = {
     "NODE_01": {
         "id": "NODE_01",
@@ -63,18 +63,21 @@ LIVE_NODES = {
         "longitude": 83.3950,
         "riskLevel": "NORMAL",
         "disasterType": "NONE",
-        "riskScore": 0.0,
-        "waterLevelCm": 0,
-        "waterLevelM": 0.0,
+        "riskScore": 10.0,
         "rainMm": 0,
+        "rain": 0,
         "soilMoisture": 0,
-        "temperature": 24.5,
-        "humidity": 75,
+        "soil": 0,
         "smokeLevel": 0,
+        "smoke": 0,
         "flameDetected": False,
+        "flame_detected": False,
         "vibration": False,
+        "temperature": 24.5,
+        "temp": 24.5,
+        "humidity": 75,
         "battery": 72,
-        "batteryVoltage": 3.04,
+        "batteryVoltage": 3.95,
         "hopCount": 1,
         "rssi": -65,
         "status": "ONLINE",
@@ -89,52 +92,40 @@ def parse_raw_serial_line(line: str):
 
     line = line.strip()
 
-    # 1. Try extracting embedded JSON object (e.g. [JSON STREAM] {"id":"V1",...})
+    # 1. Try extracting embedded JSON object (e.g. [JSON STREAM] {"id":"NODE_01",...})
     json_match = re.search(r'(\{.*\})', line)
     if json_match:
         try:
             data = json.loads(json_match.group(1))
             mapped_id = "NODE_01"
-            
-            # Water level
-            if "water_level_cm" in data:
-                water_cm = int(data["water_level_cm"])
-            elif "waterLevelCm" in data:
-                water_cm = int(data["waterLevelCm"])
-            elif "waterLevel" in data:
-                water_cm = int(round(float(data["waterLevel"]) * 100))
-            elif "waterLevelM" in data:
-                water_cm = int(round(float(data["waterLevelM"]) * 100))
-            else:
-                water_cm = 0
 
             # Rainfall
-            if "rainfall_mm" in data:
-                rain_mm = float(data["rainfall_mm"])
-            elif "rainMm" in data:
+            if "rainMm" in data:
                 rain_mm = float(data["rainMm"])
             elif "rain" in data:
                 rain_mm = float(data["rain"])
+            elif "rainfall_mm" in data:
+                rain_mm = float(data["rainfall_mm"])
             else:
                 rain_mm = 0.0
 
             # Soil moisture
-            if "soil_moisture" in data:
-                soil_pct = float(data["soil_moisture"])
-            elif "soilMoisture" in data:
+            if "soilMoisture" in data:
                 soil_pct = float(data["soilMoisture"])
             elif "soil" in data:
                 soil_pct = float(data["soil"])
+            elif "soil_moisture" in data:
+                soil_pct = float(data["soil_moisture"])
             else:
                 soil_pct = 0.0
 
             # Smoke level
-            if "smoke_level" in data:
-                smoke_lvl = int(data["smoke_level"])
-            elif "smokeLevel" in data:
+            if "smokeLevel" in data:
                 smoke_lvl = int(data["smokeLevel"])
             elif "smoke" in data:
                 smoke_lvl = int(data["smoke"])
+            elif "smoke_level" in data:
+                smoke_lvl = int(data["smoke_level"])
             else:
                 smoke_lvl = 0
 
@@ -146,7 +137,7 @@ def parse_raw_serial_line(line: str):
                 vibration = bool(vib_raw)
 
             # Flame
-            flm_raw = data.get("flame_detected", data.get("flameDetected", False))
+            flm_raw = data.get("flameDetected", data.get("flame_detected", False))
             if isinstance(flm_raw, str):
                 flame = flm_raw.lower() in ("true", "1", "detected")
             elif isinstance(flm_raw, (int, float)):
@@ -154,57 +145,54 @@ def parse_raw_serial_line(line: str):
             else:
                 flame = bool(flm_raw)
 
+            # Temp & Humidity
+            temp_val = float(data.get("temperature", data.get("temp", 24.5)))
+            hum_val = float(data.get("humidity", 75.0))
+
             # Battery
-            bat_v = float(data.get("batteryVoltage", data.get("battery", 3.95)))
-            if bat_v > 5.0:
-                bat_pct = int(min(100, max(10, bat_v)))
-                bat_v = 4.05
-            else:
-                bat_pct = int(min(100, max(10, (bat_v / 4.2) * 100)))
+            bat_v = float(data.get("batteryVoltage", 3.95))
+            bat_pct = int(min(100, max(10, (bat_v / 4.2) * 100)))
 
             normalized = {
                 "id": mapped_id,
                 "node_id": mapped_id,
-                "name": "Village 1: Kashipur Valley" if mapped_id == "NODE_01" else ("Village 2: Kolnara Ridge" if mapped_id == "NODE_02" else f"Village {mapped_id}"),
-                "village": "Kashipur Valley" if mapped_id == "NODE_01" else ("Kolnara Ridge" if mapped_id == "NODE_02" else f"Village {mapped_id}"),
+                "name": "Village 1: Kashipur Valley",
+                "village": "Kashipur Valley",
                 "district": data.get("district", "Rayagada, Odisha"),
                 "latitude": float(data.get("latitude", 19.1950)),
                 "longitude": float(data.get("longitude", 83.3950)),
                 "riskLevel": data.get("riskLevel", "NORMAL"),
                 "riskScore": float(data.get("riskScore", 10.0)),
                 "disasterType": data.get("disasterType", "NONE"),
-                "water_level_cm": water_cm,
-                "waterLevelCm": water_cm,
-                "waterLevelM": round(water_cm / 100.0, 2),
-                "waterLevel": round(water_cm / 100.0, 2),
                 "rainfall_mm": int(rain_mm),
                 "rainMm": int(rain_mm),
                 "rain": int(rain_mm),
                 "soil_moisture": int(soil_pct),
                 "soilMoisture": int(soil_pct),
                 "soil": int(soil_pct),
-                "temperature": float(data.get("temperature", data.get("temp", 24.5))),
-                "temp": float(data.get("temperature", data.get("temp", 24.5))),
-                "humidity": float(data.get("humidity", 75.0)),
                 "smoke_level": smoke_lvl,
                 "smokeLevel": smoke_lvl,
+                "smoke": smoke_lvl,
                 "flame_detected": flame,
                 "flameDetected": flame,
                 "vibration": vibration,
+                "temperature": temp_val,
+                "temp": temp_val,
+                "humidity": hum_val,
                 "battery": bat_pct,
                 "batteryVoltage": bat_v,
-                "hopCount": int(data.get("hopCount", data.get("hop", 1))),
+                "hopCount": int(data.get("hopCount", 1)),
                 "rssi": int(data.get("rssi", -65)),
                 "status": "ONLINE",
                 "lastSeen": int(time.time() * 1000),
                 "rawPacket": line
             }
             return normalized
-        except Exception as e:
+        except Exception:
             pass
 
     # 2. Parse Pipe-separated packet:
-    # V1|NORMAL|NONE|19.1950|83.3950|10.0|PKT#001|HOP:1|RAIN:0|SOIL:0|SMK:0|H2O:0.00|BAT:3.11|VIB:1|FLM:0
+    # V1|NORMAL|NONE|19.1950|83.3950|10.0|PKT#001|HOP:1|RAIN:0|SOIL:0|SMK:0|FLM:0|VIB:0|TEMP:24.5|HUM:75
     if "|" in line:
         pipe_idx = line.find("|")
         space_idx = line.rfind(" ", 0, pipe_idx)
@@ -212,8 +200,7 @@ def parse_raw_serial_line(line: str):
         parts = clean.split("|")
         
         if len(parts) >= 6:
-            raw_id = parts[0].strip()
-            mapped_id = "NODE_01" if raw_id in ("V1", "NODE_01") else ("NODE_02" if raw_id in ("V2", "NODE_02") else raw_id)
+            mapped_id = "NODE_01"
             risk_lvl = parts[1].strip()
             disaster = parts[2].strip()
             lat = float(parts[3]) if parts[3].replace('.', '', 1).replace('-', '', 1).isdigit() else 19.1950
@@ -223,11 +210,12 @@ def parse_raw_serial_line(line: str):
             rain = 0
             soil = 0
             smoke = 0
-            h2o = 0.0
+            flm = False
+            vib = False
+            temp = 24.5
+            hum = 75.0
             bat = 3.95
             hop = 1
-            vib = False
-            flm = False
 
             for p in parts[6:]:
                 p = p.strip()
@@ -239,45 +227,43 @@ def parse_raw_serial_line(line: str):
                     soil = float(p.replace("SOIL:", ""))
                 elif p.startswith("SMK:"):
                     smoke = int(p.replace("SMK:", ""))
-                elif p.startswith("H2O:"):
-                    h2o = float(p.replace("H2O:", ""))
-                elif p.startswith("BAT:"):
-                    bat = float(p.replace("BAT:", ""))
+                elif p.startswith("FLM:"):
+                    flm = p.replace("FLM:", "").strip() in ("1", "true", "TRUE", "DETECTED")
                 elif p.startswith("VIB:"):
                     vib = p.replace("VIB:", "").strip() in ("1", "true", "TRUE", "DETECTED")
-                elif p.startswith("FLM:"):
-                    flm = float(p.replace("FLM:", "")) > 50
+                elif p.startswith("TEMP:"):
+                    temp = float(p.replace("TEMP:", ""))
+                elif p.startswith("HUM:"):
+                    hum = float(p.replace("HUM:", ""))
+                elif p.startswith("BAT:"):
+                    bat = float(p.replace("BAT:", ""))
 
-            water_cm = int(round(h2o * 100))
             normalized = {
                 "id": mapped_id,
                 "node_id": mapped_id,
-                "name": "Village 1: Kashipur Valley" if mapped_id == "NODE_01" else ("Village 2: Kolnara Ridge" if mapped_id == "NODE_02" else f"Village {mapped_id}"),
-                "village": "Kashipur Valley" if mapped_id == "NODE_01" else ("Kolnara Ridge" if mapped_id == "NODE_02" else f"Village {mapped_id}"),
+                "name": "Village 1: Kashipur Valley",
+                "village": "Kashipur Valley",
                 "district": "Rayagada, Odisha",
                 "latitude": lat,
                 "longitude": lng,
                 "riskLevel": risk_lvl,
                 "riskScore": score,
                 "disasterType": disaster,
-                "water_level_cm": water_cm,
-                "waterLevelCm": water_cm,
-                "waterLevelM": h2o,
-                "waterLevel": h2o,
                 "rainfall_mm": int(rain),
                 "rainMm": int(rain),
                 "rain": int(rain),
                 "soil_moisture": int(soil),
                 "soilMoisture": int(soil),
                 "soil": int(soil),
-                "temperature": 24.5,
-                "temp": 24.5,
-                "humidity": 75,
                 "smoke_level": smoke,
                 "smokeLevel": smoke,
+                "smoke": smoke,
                 "flame_detected": flm,
                 "flameDetected": flm,
                 "vibration": vib,
+                "temperature": temp,
+                "temp": temp,
+                "humidity": hum,
                 "battery": int(min(100, max(10, (bat / 4.2) * 100))),
                 "batteryVoltage": bat,
                 "hopCount": hop,
@@ -287,8 +273,6 @@ def parse_raw_serial_line(line: str):
                 "rawPacket": line
             }
             return normalized
-
-    return None
 
     return None
 
@@ -304,7 +288,7 @@ async def ws_handler(websocket):
     remote_ip = websocket.remote_address
     print(f"[WebSocket] 🟢 Client connected from {remote_ip}")
 
-    # Send current state of all known nodes immediately
+    # Send current state of Node 1 immediately
     initial_payload = json.dumps(list(LIVE_NODES.values()))
     await websocket.send(initial_payload)
 
@@ -332,13 +316,12 @@ async def ws_handler(websocket):
         print(f"[WebSocket] 🔴 Client disconnected: {remote_ip}")
 
 def find_esp32_port():
-    """Auto-detect USB Serial Port connected to ESP32 / CP210x / CH340 / FTDI."""
+    """Auto-detect USB Serial Port connected to ESP32."""
     if not serial:
         return None
     ports = list(serial.tools.list_ports.comports())
     for p in ports:
         desc = (p.description or "").lower()
-        hwid = (p.hwid or "").lower()
         if "cp210" in desc or "ch340" in desc or "uart" in desc or "usb" in desc or "serial" in desc or "ftdi" in desc:
             return p.device
     if ports:
@@ -369,14 +352,9 @@ async def read_serial_loop(port: str, baud: int):
                 ser.rts = False
             except Exception:
                 pass
-            print(f"[Serial] ✅ Successfully connected to {target_port}! Streaming 100% REAL physical hardware sensor telemetry...")
+            print(f"[Serial] ✅ Successfully connected to {target_port}! Streaming 6 Physical Sensors Live...")
         except Exception as e:
             print(f"[!] Could not open serial port {target_port}: {e}")
-            if serial.tools.list_ports.comports():
-                print("    Available ports:")
-                for p in serial.tools.list_ports.comports():
-                    print(f"    - {p.device}: {p.description}")
-            print("    Waiting 3 seconds before retrying hardware connection...")
             await asyncio.sleep(3)
             continue
 
@@ -389,7 +367,7 @@ async def read_serial_loop(port: str, baud: int):
                         node_id = parsed["id"]
                         LIVE_NODES[node_id] = parsed
                         payload = json.dumps(parsed)
-                        print(f"[ESP32 -> WS] 📡 {node_id} | H2O: {parsed['waterLevelCm']}cm ({parsed['waterLevelM']}m) | Rain: {parsed['rainMm']}mm | Soil: {parsed['soilMoisture']}% | Smoke: {parsed['smokeLevel']} | Vib: {parsed['vibration']} | Temp: {parsed['temperature']}°C | Bat: {parsed['batteryVoltage']}V | Risk: {parsed['riskLevel']} ({parsed['riskScore']}/100)")
+                        print(f"[ESP32 -> WS] 📡 {node_id} | Rain: {parsed['rainMm']}mm | Soil: {parsed['soilMoisture']}% | Smoke: {parsed['smokeLevel']} PPM | Flame: {parsed['flameDetected']} | Vib: {parsed['vibration']} | Temp: {parsed['temperature']}°C | Hum: {parsed['humidity']}% | Risk: {parsed['riskLevel']} ({parsed['riskScore']}/100)")
                         await broadcast_message(payload)
                     else:
                         if raw_line.startswith("[") or "LoRa" in raw_line or "PKT" in raw_line or "WiFi" in raw_line or "Cycle" in raw_line:
@@ -405,15 +383,17 @@ async def read_serial_loop(port: str, baud: int):
             await asyncio.sleep(0.01)
 
 async def run_simulation_loop():
-    """Simulation fallback when no physical hardware is plugged in."""
-    print("[Simulator] Background simulation active...")
+    """Simulation fallback."""
+    print("[Simulator] Background simulation active for 6 sensors...")
     while True:
         await asyncio.sleep(3.0)
         node1 = LIVE_NODES["NODE_01"]
-        node1["waterLevelCm"] = max(10, min(300, node1["waterLevelCm"] + random.randint(-2, 3)))
-        node1["waterLevelM"] = round(node1["waterLevelCm"] / 100.0, 2)
         node1["rainMm"] = max(0, min(150, node1["rainMm"] + random.randint(-1, 2)))
+        node1["rain"] = node1["rainMm"]
         node1["soilMoisture"] = max(20, min(99, node1["soilMoisture"] + random.randint(-1, 1)))
+        node1["soil"] = node1["soilMoisture"]
+        node1["smokeLevel"] = max(0, min(300, node1["smokeLevel"] + random.randint(-2, 3)))
+        node1["smoke"] = node1["smokeLevel"]
         node1["lastSeen"] = int(time.time() * 1000)
         
         payload = json.dumps(node1)
@@ -421,7 +401,7 @@ async def run_simulation_loop():
 
 async def main():
     parser = argparse.ArgumentParser(description="DisasterGuard WebSocket Gateway Bridge")
-    parser.add_argument("--port", type=str, default="auto", help="Serial port (e.g. COM3, COM4 or /dev/ttyUSB0 or 'auto')")
+    parser.add_argument("--port", type=str, default="auto", help="Serial port (e.g. COM4 or 'auto')")
     parser.add_argument("--baud", type=int, default=115200, help="Serial baud rate (default: 115200)")
     parser.add_argument("--ws_port", type=int, default=8080, help="WebSocket port (default: 8080)")
     parser.add_argument("--simulate", action="store_true", help="Run in simulation mode without hardware")

@@ -182,7 +182,7 @@ export function RescueOperationsView({
 
               <div style={{ fontSize: '10px', color: '#cbd5e1', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 <div>Threat Type: <strong style={{ color: '#fca5a5' }}>{node.disasterType}</strong></div>
-                <div>Water Depth: <strong>{node.waterLevelCm}cm ({node.waterLevelM}m)</strong> | Rain: <strong>{node.rainMm}mm/h</strong></div>
+                <div>Rainfall: <strong>{node.rainMm || 0}mm/h</strong> | Soil: <strong>{node.soilMoisture || 0}%</strong> | Smoke: <strong>{node.smokeLevel || 0}PPM</strong></div>
                 <div>Nearest Gateway: <strong>Rayagada Base Hub (Hop {node.hopCount || 1})</strong></div>
               </div>
 
