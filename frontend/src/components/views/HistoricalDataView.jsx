@@ -243,7 +243,7 @@ export function HistoricalDataView({ nodes = {} }) {
           <div style={{ fontSize: '22px', fontWeight: 800, color: '#818cf8', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
             {maxRain} <span style={{ fontSize: '12px', color: '#64748b' }}>mm/h</span>
           </div>
-          <span style={{ fontSize: '10px', color: '#94a3b8' }}>Rain Sensor (Pin 34)</span>
+          <span style={{ fontSize: '10px', color: '#94a3b8' }}>Rainfall Sensor</span>
         </div>
 
         <div className="glass-card" style={{ padding: '14px' }}>
@@ -251,7 +251,7 @@ export function HistoricalDataView({ nodes = {} }) {
           <div style={{ fontSize: '22px', fontWeight: 800, color: '#10b981', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
             {avgSoil} <span style={{ fontSize: '12px', color: '#64748b' }}>%</span>
           </div>
-          <span style={{ fontSize: '10px', color: '#94a3b8' }}>Soil Saturation (Pin 35)</span>
+          <span style={{ fontSize: '10px', color: '#94a3b8' }}>Soil Moisture Sensor</span>
         </div>
 
         <div className="glass-card" style={{ padding: '14px' }}>
@@ -259,7 +259,7 @@ export function HistoricalDataView({ nodes = {} }) {
           <div style={{ fontSize: '22px', fontWeight: 800, color: '#f59e0b', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
             {maxSmoke} <span style={{ fontSize: '12px', color: '#64748b' }}>PPM</span>
           </div>
-          <span style={{ fontSize: '10px', color: '#94a3b8' }}>MQ-2 Sensor (Pin 39)</span>
+          <span style={{ fontSize: '10px', color: '#94a3b8' }}>MQ-2 Gas Sensor</span>
         </div>
 
         <div className="glass-card" style={{ padding: '14px' }}>
@@ -267,7 +267,7 @@ export function HistoricalDataView({ nodes = {} }) {
           <div style={{ fontSize: '22px', fontWeight: 800, color: '#f43f5e', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
             {avgTemp} <span style={{ fontSize: '12px', color: '#64748b' }}>°C</span>
           </div>
-          <span style={{ fontSize: '10px', color: '#94a3b8' }}>DHT22 Sensor (Pin 4)</span>
+          <span style={{ fontSize: '10px', color: '#94a3b8' }}>DHT22 Climate Sensor</span>
         </div>
       </div>
 

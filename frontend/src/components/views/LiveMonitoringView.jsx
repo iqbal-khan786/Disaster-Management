@@ -172,7 +172,7 @@ export function LiveMonitoringView({
               <Droplets size={18} color="#818cf8" />
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Rainfall Precipitation</span>
             </div>
-            <span style={{ fontSize: '10px', color: '#64748b' }}>Rain Sensor (Pin 34)</span>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>Rainfall Sensor</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
@@ -196,14 +196,14 @@ export function LiveMonitoringView({
           </div>
         </div>
 
-        {/* Sensor 2: Soil Moisture Content (Soil Sensor Pin 35) */}
+        {/* Sensor 2: Soil Moisture Content */}
         <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Mountain size={18} color="#10b981" />
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Soil Moisture & Saturation</span>
             </div>
-            <span style={{ fontSize: '10px', color: '#64748b' }}>Soil v1.2 (Pin 35)</span>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>Soil Moisture Sensor</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
@@ -227,14 +227,14 @@ export function LiveMonitoringView({
           </div>
         </div>
 
-        {/* Sensor 3: Smoke & Combustible Gas (MQ-2 Pin 39) */}
+        {/* Sensor 3: Smoke & Combustible Gas */}
         <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Flame size={18} color="#f59e0b" />
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Smoke & Combustible Gas</span>
             </div>
-            <span style={{ fontSize: '10px', color: '#64748b' }}>MQ-2 Sensor (Pin 39)</span>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>MQ-2 Gas Sensor</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
@@ -258,14 +258,14 @@ export function LiveMonitoringView({
           </div>
         </div>
 
-        {/* Sensor 4: Flame / Fire Detection (IR Optical Pin 33) */}
+        {/* Sensor 4: Flame / Fire Detection */}
         <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Zap size={18} color={currentNode.flameDetected ? '#ef4444' : '#10b981'} />
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Flame / Fire Optical Status</span>
             </div>
-            <span style={{ fontSize: '10px', color: '#64748b' }}>Flame IR (Pin 33)</span>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>Flame IR Sensor</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
@@ -293,14 +293,14 @@ export function LiveMonitoringView({
           </div>
         </div>
 
-        {/* Sensor 5: Seismic / Slope Vibration (SW-420 Pin 32) */}
+        {/* Sensor 5: Seismic / Slope Vibration */}
         <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Activity size={18} color="#f59e0b" />
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Seismic / Slope Shift</span>
             </div>
-            <span style={{ fontSize: '10px', color: '#64748b' }}>SW-420 Sensor (Pin 32)</span>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>SW-420 Motion Sensor</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
@@ -331,14 +331,14 @@ export function LiveMonitoringView({
           </div>
         </div>
 
-        {/* Sensor 6: Atmospheric Temp & Humidity (DHT22 Pin 4) */}
+        {/* Sensor 6: Atmospheric Temp & Humidity */}
         <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Thermometer size={18} color="#06b6d4" />
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc' }}>Ambient Climate</span>
             </div>
-            <span style={{ fontSize: '10px', color: '#64748b' }}>DHT22 Sensor (Pin 4)</span>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>DHT22 Climate Sensor</span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>

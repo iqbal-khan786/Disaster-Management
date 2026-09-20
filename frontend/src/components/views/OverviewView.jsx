@@ -496,7 +496,7 @@ export function OverviewView({
             <div style={{ fontSize: '18px', fontWeight: 800, color: '#818cf8', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
               {selectedNode.rainMm || 0} <span style={{ fontSize: '11px', color: '#64748b' }}>mm/h</span>
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Rain Sensor (Pin 34)</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>Rainfall Sensor</span>
           </div>
 
           {/* 2. Soil Moisture */}
@@ -508,7 +508,7 @@ export function OverviewView({
             <div style={{ fontSize: '18px', fontWeight: 800, color: '#10b981', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
               {selectedNode.soilMoisture || 0} <span style={{ fontSize: '11px', color: '#64748b' }}>%</span>
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Soil Sensor (Pin 35)</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>Soil Moisture Sensor</span>
           </div>
 
           {/* 3. Smoke & Gas */}
@@ -520,7 +520,7 @@ export function OverviewView({
             <div style={{ fontSize: '18px', fontWeight: 800, color: '#f59e0b', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
               {selectedNode.smokeLevel || 0} <span style={{ fontSize: '11px', color: '#64748b' }}>PPM</span>
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>MQ-2 Sensor (Pin 39)</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>MQ-2 Gas Sensor</span>
           </div>
 
           {/* 4. Flame IR */}
@@ -538,7 +538,7 @@ export function OverviewView({
             }}>
               {selectedNode.flameDetected ? 'FLAME (1)' : 'CLEAR (0)'}
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Flame IR (Pin 33)</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>Flame IR Sensor</span>
           </div>
 
           {/* 5. Seismic Vibration */}
@@ -556,7 +556,7 @@ export function OverviewView({
             }}>
               {selectedNode.vibration ? `${selectedNode.vibrationFreq || 380} Hz (TREMOR)` : '0 Hz (NOMINAL)'}
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>SW-420 (Pin 32)</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>SW-420 Motion Sensor</span>
           </div>
 
           {/* 6. Climate (Temp / Hum) */}
@@ -568,7 +568,7 @@ export function OverviewView({
             <div style={{ fontSize: '16px', fontWeight: 800, color: '#f43f5e', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
               {selectedNode.temp || 24.5}°C <span style={{ fontSize: '11px', color: '#06b6d4' }}>/ {selectedNode.humidity || 75}%</span>
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>DHT22 (Pin 4)</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>DHT22 Climate Sensor</span>
           </div>
         </div>
       </div>

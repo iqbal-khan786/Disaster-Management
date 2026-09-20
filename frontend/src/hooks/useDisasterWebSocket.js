@@ -49,8 +49,8 @@ const INITIAL_HISTORY = [
 ];
 
 /**
- * Universal Packet Parser for 6 physical sensors:
- * Rain (Pin 34), Soil (Pin 35), Smoke (Pin 39), Flame (Pin 33), Vibration (Pin 32), DHT22 (Pin 4)
+ * 6 Physical Environmental Sensors:
+ * Rainfall Precipitation, Soil Moisture Saturation, MQ-2 Gas/Smoke, Flame IR, SW-420 Motion, DHT22 Climate
  */
 function parseAnyIncomingData(rawInput) {
   if (!rawInput) return null;

@@ -170,10 +170,10 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
             <div style={{ fontSize: '20px', fontWeight: 800, color: '#818cf8', fontFamily: 'JetBrains Mono' }}>
               {rain} mm/h
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Rain Sensor (Pin 34)</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>Rainfall Sensor</span>
           </div>
 
-          {/* 2. Soil Moisture (Pin 35) */}
+          {/* 2. Soil Moisture */}
           <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10b981' }}>
               <Mountain size={16} />
@@ -182,10 +182,10 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
             <div style={{ fontSize: '20px', fontWeight: 800, color: '#10b981', fontFamily: 'JetBrains Mono' }}>
               {soil}%
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Soil Moisture Sensor (Pin 35)</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>Soil Moisture Sensor</span>
           </div>
 
-          {/* 3. Smoke & Gas (MQ-2 Pin 39) */}
+          {/* 3. Smoke & Gas */}
           <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f59e0b' }}>
               <Flame size={16} />
@@ -194,10 +194,10 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
             <div style={{ fontSize: '20px', fontWeight: 800, color: '#f59e0b', fontFamily: 'JetBrains Mono' }}>
               {smoke} PPM
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>MQ-2 Gas Sensor (Pin 39)</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>MQ-2 Gas Sensor</span>
           </div>
 
-          {/* 4. Flame IR Detection (Pin 33) */}
+          {/* 4. Flame IR Detection */}
           <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: node.flameDetected ? '#ef4444' : '#10b981' }}>
               <Zap size={16} />
@@ -206,10 +206,10 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
             <div style={{ fontSize: '16px', fontWeight: 800, color: node.flameDetected ? '#ef4444' : '#10b981', fontFamily: 'JetBrains Mono' }}>
               {node.flameDetected ? 'FLAME DETECTED' : 'CLEAR'}
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>Flame IR Sensor (Pin 33)</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>Flame IR Sensor</span>
           </div>
 
-          {/* 5. Seismic Vibration (SW-420 Pin 32) */}
+          {/* 5. Seismic Vibration */}
           <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f59e0b' }}>
               <Activity size={16} />
@@ -218,10 +218,10 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
             <div style={{ fontSize: '15px', fontWeight: 800, color: node.vibration ? '#ef4444' : '#10b981', fontFamily: 'JetBrains Mono' }}>
               {node.vibration ? 'MOTION DETECTED' : 'STABLE'}
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>SW-420 Motion Sensor (Pin 32)</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>SW-420 Motion Sensor</span>
           </div>
 
-          {/* 6. Climate (Temp / Humidity DHT22 Pin 4) */}
+          {/* 6. Climate (Temp / Humidity) */}
           <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#06b6d4' }}>
               <Thermometer size={16} />
@@ -230,7 +230,7 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
             <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', fontFamily: 'JetBrains Mono' }}>
               {node.temp || 24.5}°C <span style={{ fontSize: '12px', color: '#06b6d4' }}>({node.humidity || 75}%)</span>
             </div>
-            <span style={{ fontSize: '9px', color: '#64748b' }}>DHT22 Sensor (Pin 4)</span>
+            <span style={{ fontSize: '9px', color: '#64748b' }}>DHT22 Climate Sensor</span>
           </div>
         </div>
 

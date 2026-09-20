@@ -134,7 +134,7 @@ export function generateDisasterPDFReport({ logs = [], currentNode = {}, summary
     {
       title: 'Flame Detection (IR)',
       val: currentNode.flameDetected ? 'FLAME TRIP (CRITICAL)' : 'CLEAR (NOMINAL)',
-      sub: 'IR Optical Sensor (Pin 33)'
+      sub: 'IR Optical Sensor'
     },
     {
       title: 'Seismic / Slope Vibration',
