@@ -11,7 +11,7 @@ const INITIAL_NODES = {
     latitude: 19.1950,
     longitude: 83.3950,
     riskLevel: "NORMAL",
-    riskScore: 18.5,
+    riskScore: 25.4,
     disasterType: "BASELINE_STABLE",
     rainMm: 0.0,
     rainPercent: 0,
@@ -46,9 +46,9 @@ const INITIAL_NODES = {
 };
 
 const INITIAL_HISTORY = [
-  { time: new Date(Date.now() - 15000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 0.0, soilMoisture: 34.0, smokeLevel: 18.2, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.3, humidity: 64.8, rssi: -67, riskScore: 18.2, nodeId: 'NODE_01' },
-  { time: new Date(Date.now() - 10000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 0.0, soilMoisture: 34.1, smokeLevel: 18.6, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.4, humidity: 64.6, rssi: -66, riskScore: 18.4, nodeId: 'NODE_01' },
-  { time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 0.0, soilMoisture: 34.2, smokeLevel: 18.4, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.4, humidity: 64.5, rssi: -67, riskScore: 18.5, nodeId: 'NODE_01' }
+  { time: new Date(Date.now() - 15000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 0.0, soilMoisture: 34.0, smokeLevel: 18.2, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.3, humidity: 64.8, rssi: -67, riskScore: 25.1, nodeId: 'NODE_01' },
+  { time: new Date(Date.now() - 10000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 0.0, soilMoisture: 34.1, smokeLevel: 18.6, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.4, humidity: 64.6, rssi: -66, riskScore: 25.3, nodeId: 'NODE_01' },
+  { time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 0.0, soilMoisture: 34.2, smokeLevel: 18.4, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.4, humidity: 64.5, rssi: -67, riskScore: 25.4, nodeId: 'NODE_01' }
 ];
 
 /**
@@ -296,20 +296,20 @@ export function useDisasterWebSocket() {
     const hopCount = raw.hopCount !== undefined ? Number(raw.hopCount) : 1;
     const packetSequence = raw.packetSequence !== undefined ? Number(raw.packetSequence) : (existing?.packetSequence ? existing.packetSequence + 1 : 1024);
 
-    // Weighted risk computed from strictly the 6 physical sensors
+    // Weighted risk computed from strictly the 6 physical sensors with calibrated ambient baselines
     let calculatedRiskScore = raw.riskScore !== undefined ? Number(raw.riskScore) : null;
     if (calculatedRiskScore === null) {
-      const rainScore = (Math.min(100, rainMm) / 100.0) * 100.0;
-      const soilScore = (soilMoisture / 100.0) * 100.0;
-      const vibScore = vibration ? 100.0 : 0.0;
-      const flameScore = flameDetected ? 100.0 : 0.0;
-      const smokeScore = Math.min(100.0, (smokeLevel / 200.0) * 100.0);
-      const climateScore = temp > 42.0 ? 100.0 : (temp > 35.0 ? 50.0 : 10.0);
-      calculatedRiskScore = Number(Math.max(5.0, Math.min(100.0, (rainScore * 0.25) + (soilScore * 0.20) + (vibScore * 0.20) + (flameScore * 0.15) + (smokeScore * 0.10) + (climateScore * 0.10))).toFixed(1));
+      const rainScore = 16.0 + (rainMm > 0 ? (Math.min(75, rainMm) / 75.0) * 84.0 : 0.0);
+      const soilScore = 15.0 + (Math.min(100, soilMoisture) / 100.0) * 85.0;
+      const vibScore = vibration ? 100.0 : 15.0;
+      const flameScore = flameDetected ? 100.0 : 13.0;
+      const smokeScore = 20.0 + (Math.min(200, smokeLevel) / 200.0) * 80.0;
+      const climateScore = temp > 42.0 ? 100.0 : (temp > 35.0 ? 75.0 : 38.0);
+      calculatedRiskScore = Number(Math.max(15.0, Math.min(100.0, (rainScore * 0.25) + (soilScore * 0.20) + (vibScore * 0.20) + (flameScore * 0.15) + (smokeScore * 0.10) + (climateScore * 0.10))).toFixed(1));
     }
 
     let calculatedRiskLevel = raw.riskLevel || (calculatedRiskScore >= 70 ? "CRITICAL" : calculatedRiskScore >= 40 ? "WARNING" : "NORMAL");
-    if (calculatedRiskLevel === "NORMAL" || calculatedRiskScore < 25) {
+    if (calculatedRiskLevel === "NORMAL" || calculatedRiskScore < 35) {
       calculatedRiskLevel = "NORMAL";
     }
     
