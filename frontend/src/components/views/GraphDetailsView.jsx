@@ -16,11 +16,7 @@ import {
   Layers,
   Thermometer,
   Droplets,
-  Volume2,
-  Download,
-  Calendar,
-  Clock,
-  Sparkles
+  Download
 } from 'lucide-react';
 
 ChartJS.register(
@@ -39,8 +35,8 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
   const nodeList = Object.values(nodes);
   const [selectedVillageId, setSelectedVillageId] = useState('NODE_01');
 
-  // Interactive View Modes matching the reference image:
-  // 1. Tab: 'dual' (Dual Overlay) | 'temp' (Temperature) | 'hum' (Humidity) | 'sound' (Sound Frequency)
+  // Interactive View Modes:
+  // 1. Tab: 'dual' (Dual Overlay) | 'temp' (Temperature) | 'hum' (Humidity)
   const [activeTab, setActiveTab] = useState('dual');
 
   // 2. Chart Type: 'area' | 'line' | 'bar'
@@ -65,8 +61,7 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
         const timeStr = new Date(now - i * stepMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const tVal = Number((baseTemp + Math.sin((count - i) * 0.5) * 1.2).toFixed(1));
         const hVal = Number(Math.min(100, Math.max(10, baseHum - Math.sin((count - i) * 0.5) * 3.2)).toFixed(1));
-        const soundVal = Number((42 + Math.cos((count - i) * 0.8) * 8.5).toFixed(1));
-        points.push({ label: timeStr, temp: tVal, hum: hVal, sound: soundVal });
+        points.push({ label: timeStr, temp: tVal, hum: hVal });
       }
       return points;
     }
@@ -79,8 +74,7 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
         const timeStr = new Date(now - i * stepMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const tVal = Number((baseTemp + Math.sin((count - i) * 0.4) * 2.2).toFixed(1));
         const hVal = Number(Math.min(100, Math.max(10, baseHum - Math.sin((count - i) * 0.4) * 6.5)).toFixed(1));
-        const soundVal = Number((45 + Math.cos((count - i) * 0.6) * 12.0).toFixed(1));
-        points.push({ label: timeStr, temp: tVal, hum: hVal, sound: soundVal });
+        points.push({ label: timeStr, temp: tVal, hum: hVal });
       }
       return points;
     }
@@ -90,8 +84,7 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
       return hours.map((h, idx) => {
         const tVal = Number((baseTemp + Math.cos((idx - 4) * 0.7) * 4.2).toFixed(1));
         const hVal = Number(Math.min(95, Math.max(25, baseHum - Math.cos((idx - 4) * 0.7) * 12.0)).toFixed(1));
-        const soundVal = Number((40 + Math.sin(idx * 0.8) * 14).toFixed(1));
-        return { label: h, temp: tVal, hum: hVal, sound: soundVal };
+        return { label: h, temp: tVal, hum: hVal };
       });
     }
 
@@ -99,13 +92,11 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
       const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
       const temps = [34.5, 34.1, 34.8, 35.0, 34.3, 34.0, 34.5];
       const hums = [58.0, 60.5, 63.8, 61.2, 57.0, 55.2, 62.0];
-      const sounds = [46.2, 48.0, 52.4, 47.1, 44.5, 43.8, 49.0];
 
       return days.map((d, idx) => ({
         label: d,
         temp: temps[idx],
-        hum: hums[idx],
-        sound: sounds[idx]
+        hum: hums[idx]
       }));
     }
 
@@ -116,8 +107,7 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
         points.push({
           label: `${dayNum} Sep`,
           temp: Number((baseTemp + Math.sin(i * 0.5) * 3.5).toFixed(1)),
-          hum: Number(Math.min(95, Math.max(25, baseHum - Math.sin(i * 0.5) * 8.5)).toFixed(1)),
-          sound: Number((44 + Math.cos(i * 0.6) * 11).toFixed(1))
+          hum: Number(Math.min(95, Math.max(25, baseHum - Math.sin(i * 0.5) * 8.5)).toFixed(1))
         });
       }
       return points;
@@ -128,9 +118,7 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
 
   const labels = chartDataPoints.map(p => p.label);
 
-  // Common Theme Styling matching reference screenshot:
   const isArea = chartType === 'area';
-
   const datasets = [];
 
   // Temperature Dataset (Orange / Amber)
@@ -187,34 +175,6 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
       pointHoverRadius: 7,
       pointBackgroundColor: '#ffffff',
       pointBorderColor: '#2563eb',
-      pointBorderWidth: 2.5
-    });
-  }
-
-  // Sound Frequency Dataset (Purple)
-  if (activeTab === 'sound') {
-    datasets.push({
-      type: chartType === 'bar' ? 'bar' : 'line',
-      label: 'Sound Frequency (dB / Hz)',
-      data: chartDataPoints.map(p => p.sound),
-      borderColor: '#8b5cf6',
-      backgroundColor: (context) => {
-        if (chartType === 'bar') return 'rgba(139, 92, 246, 0.7)';
-        if (!isArea) return 'transparent';
-        const ctx = context.chart.ctx;
-        const gradient = ctx.createLinearGradient(0, 0, 0, 320);
-        gradient.addColorStop(0, 'rgba(139, 92, 246, 0.25)');
-        gradient.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
-        return gradient;
-      },
-      borderWidth: 2.8,
-      tension: 0.35,
-      fill: isArea,
-      yAxisID: 'yTemp',
-      pointRadius: 4.5,
-      pointHoverRadius: 7,
-      pointBackgroundColor: '#ffffff',
-      pointBorderColor: '#8b5cf6',
       pointBorderWidth: 2.5
     });
   }
@@ -292,7 +252,7 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
     },
     plugins: {
       legend: {
-        display: false // We render custom top-right legends matching the screenshot
+        display: false
       },
       tooltip: {
         backgroundColor: 'rgba(15, 23, 42, 0.95)',
@@ -311,8 +271,8 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
 
   // Export CSV Handler
   const handleExportCSV = () => {
-    const headers = 'Label,Temperature_C,Humidity_pct,Sound_dB\n';
-    const rows = chartDataPoints.map(p => `${p.label},${p.temp},${p.hum},${p.sound}`).join('\n');
+    const headers = 'Label,Temperature_C,Humidity_pct\n';
+    const rows = chartDataPoints.map(p => `${p.label},${p.temp},${p.hum}`).join('\n');
     const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -395,6 +355,7 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
                 fontSize: '12.5px',
                 fontWeight: 700,
                 cursor: 'pointer',
+                boxShadow: activeTab === 'temp' ? '0 2px 8px rgba(217, 119, 6, 0.15)' : 'none',
                 transition: 'all 0.15s ease'
               }}
             >
@@ -417,33 +378,12 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
                 fontSize: '12.5px',
                 fontWeight: 700,
                 cursor: 'pointer',
+                boxShadow: activeTab === 'hum' ? '0 2px 8px rgba(217, 119, 6, 0.15)' : 'none',
                 transition: 'all 0.15s ease'
               }}
             >
               <Droplets size={15} color={activeTab === 'hum' ? '#d97706' : '#64748b'} />
               Humidity
-            </button>
-
-            {/* 4. Sound Frequency Tab */}
-            <button
-              onClick={() => setActiveTab('sound')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '7px',
-                padding: '8px 16px',
-                borderRadius: '10px',
-                border: activeTab === 'sound' ? '1.5px solid #fcd34d' : '1px solid #e2e8f0',
-                background: activeTab === 'sound' ? '#fef3c7' : '#ffffff',
-                color: activeTab === 'sound' ? '#d97706' : '#64748b',
-                fontSize: '12.5px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <Volume2 size={15} color={activeTab === 'sound' ? '#d97706' : '#64748b'} />
-              Sound Frequency
             </button>
           </div>
 
@@ -569,20 +509,6 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
                 display: 'inline-block'
               }} />
               Humidity (%)
-            </div>
-          )}
-
-          {activeTab === 'sound' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
-              <span style={{
-                width: '12px',
-                height: '12px',
-                borderRadius: '50%',
-                border: '2.5px solid #8b5cf6',
-                background: '#ffffff',
-                display: 'inline-block'
-              }} />
-              Sound Frequency (dB)
             </div>
           )}
         </div>
