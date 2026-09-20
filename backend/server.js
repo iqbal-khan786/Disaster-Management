@@ -3,7 +3,7 @@ import http from 'http';
 import cors from 'cors';
 import { WebSocketServer, WebSocket } from 'ws';
 import apiRoutes from './routes/apiRoutes.js';
-import { SIM_NODES, startSimulator } from './simulator.js';
+import { SIM_NODES, startSimulator, setScenario } from './simulator.js';
 import { NodeModel } from '../database/models/NodeModel.js';
 import { DispatchModel } from '../database/models/DispatchModel.js';
 
@@ -70,6 +70,10 @@ wss.on('connection', async (ws, req) => {
       if (data.cmd === 'GET_ALL') {
         const nodes = await NodeModel.getAll();
         ws.send(JSON.stringify(nodes));
+      } else if (data.cmd === 'SET_SCENARIO' || data.cmd === 'SCENARIO') {
+        const scenario = data.scenario || data.name || 'normal';
+        console.log(`[SCENARIO] 🎛️ Setting simulation scenario: ${scenario}`);
+        setScenario(scenario);
       } else if (data.cmd === 'SIREN') {
         console.log(`[ALARM] 🚨 Evacuation Siren command broadcasted to all units!`);
         broadcastToClients({ event: 'siren_triggered', duration: data.duration || 3000, timestamp: Date.now() });
@@ -83,6 +87,9 @@ wss.on('connection', async (ws, req) => {
         });
         broadcastToClients({ event: 'rescue_dispatched', node: data.node, timestamp: Date.now() });
       } else if (data.cmd === 'SIMULATE') {
+        if (data.scenario) {
+          setScenario(data.scenario);
+        }
         broadcastToClients(data);
       }
     } catch (e) {

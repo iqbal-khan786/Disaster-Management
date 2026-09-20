@@ -52,7 +52,7 @@ except ImportError:
 
 CONNECTED_CLIENTS = set()
 
-# Live State of Monitored Village (Node 1 with 6 Sensors: Fire OFF, Smoke Normal, Vibration Normal)
+# Live State of Monitored Village (Node 1 with 6 Sensors: Fire OFF, Smoke Normal 18.4 PPM, Vibration Normal, Rain 0.0mm, Soil 34.2%)
 LIVE_NODES = {
     "NODE_01": {
         "id": "NODE_01",
@@ -62,25 +62,29 @@ LIVE_NODES = {
         "latitude": 19.1950,
         "longitude": 83.3950,
         "riskLevel": "NORMAL",
-        "disasterType": "SOIL_SATURATION_MONITORING",
-        "riskScore": 28.5,
-        "rainMm": 5,
-        "rain": 5,
-        "soilMoisture": 92,
-        "soil": 92,
-        "smokeLevel": 18,
-        "smoke": 18,
+        "disasterType": "BASELINE_STABLE",
+        "riskScore": 18.5,
+        "rainMm": 0.0,
+        "rain": 0.0,
+        "soilMoisture": 34.2,
+        "soil": 34.2,
+        "smokeLevel": 18.4,
+        "smoke": 18.4,
         "flameDetected": False,
         "flame_detected": False,
         "flame": 0,
+        "flameVoltage": 3.26,
         "vibration": False,
-        "vibrationFreq": 0,
-        "vibrationHz": 0,
-        "temperature": 26.5,
-        "temp": 26.5,
-        "humidity": 85,
+        "vibrationFreq": 0.0,
+        "vibrationHz": 0.0,
+        "vibrationG": 0.02,
+        "temperature": 26.4,
+        "temp": 26.4,
+        "humidity": 64.5,
         "hopCount": 1,
-        "rssi": -65,
+        "rssi": -67,
+        "snr": 8.6,
+        "packetSequence": 1024,
         "status": "ONLINE",
         "lastSeen": int(time.time() * 1000)
     }
@@ -376,36 +380,52 @@ async def read_serial_loop(port: str, baud: int):
             await asyncio.sleep(0.01)
 
 def apply_live_fluctuations(node):
-    """Apply natural physical fluctuations: Rain: ~5mm, Soil: ~92%, Smoke: ~18PPM (Normal), Flame: 0 (OFF), Vib: 0Hz (Normal), Temp: ~26.5C, Hum: ~85%"""
-    node["rainMm"] = round(max(3.0, min(8.0, node.get("rainMm", 5.0) + random.uniform(-0.3, 0.3))), 1)
+    """Apply realistic natural physics fluctuations and ADC continuous drift."""
+    seq = node.get("packetSequence", 1024) + 1
+    node["packetSequence"] = seq
+    
+    # Tiny natural analog drift & thermal Gaussian noise
+    d_rain = random.gauss(0, 0.03)
+    d_soil = random.gauss(0, 0.12)
+    d_smoke = random.gauss(0, 0.35)
+    d_temp = random.gauss(0, 0.06)
+    d_hum = random.gauss(0, 0.25)
+    
+    node["rainMm"] = round(max(0.0, node.get("rainMm", 0.0) + d_rain), 1)
     node["rain"] = node["rainMm"]
-    node["soilMoisture"] = round(max(89.0, min(95.0, node.get("soilMoisture", 92.0) + random.uniform(-0.4, 0.4))), 1)
+    node["soilMoisture"] = round(max(5.0, min(99.5, node.get("soilMoisture", 34.2) + d_soil)), 1)
     node["soil"] = node["soilMoisture"]
-    node["smokeLevel"] = int(max(14, min(24, node.get("smokeLevel", 18) + random.randint(-2, 2))))
+    node["smokeLevel"] = round(max(10.0, min(800.0, node.get("smokeLevel", 18.4) + d_smoke)), 1)
     node["smoke"] = node["smokeLevel"]
-    node["flameDetected"] = False
-    node["flame_detected"] = False
-    node["flame"] = 0
-    node["vibration"] = False
-    node["vibrationFreq"] = 0
-    node["vibrationHz"] = 0
-    node["temperature"] = round(max(25.5, min(27.5, node.get("temperature", 26.5) + random.uniform(-0.15, 0.15))), 1)
+    
+    # Calculate SIH weighted risk formula
+    rain_score = (min(100, node["rainMm"]) / 100.0) * 100.0
+    soil_score = (node["soilMoisture"] / 100.0) * 100.0
+    vib_score = 100.0 if node.get("vibration", False) else 0.0
+    flame_score = 100.0 if node.get("flameDetected", False) else 0.0
+    smoke_score = min(100.0, (node["smokeLevel"] / 200.0) * 100.0)
+    climate_score = 10.0
+    
+    total_risk = (rain_score * 0.25) + (soil_score * 0.20) + (vib_score * 0.20) + (flame_score * 0.15) + (smoke_score * 0.10) + (climate_score * 0.10)
+    node["riskScore"] = round(max(5.0, min(100.0, total_risk)), 1)
+    node["riskLevel"] = "EMERGENCY" if node["riskScore"] >= 70.0 else ("WARNING" if node["riskScore"] >= 40.0 else "NORMAL")
+    
+    node["temperature"] = round(max(15.0, min(50.0, node.get("temperature", 26.4) + d_temp)), 1)
     node["temp"] = node["temperature"]
-    node["humidity"] = round(max(82.0, min(88.0, node.get("humidity", 85.0) + random.uniform(-0.3, 0.3))), 1)
-    node["riskScore"] = round(min(50.0, max(20.0, 28.5 + random.uniform(-1.0, 1.0))), 1)
-    node["riskLevel"] = "NORMAL"
-    node["disasterType"] = "SOIL_SATURATION_MONITORING"
+    node["humidity"] = round(max(15.0, min(99.0, node.get("humidity", 64.5) + d_hum)), 1)
+    node["rssi"] = int(-67 + random.randint(-2, 2))
+    node["snr"] = round(8.6 + random.uniform(-0.4, 0.4), 1)
     node["lastSeen"] = int(time.time() * 1000)
     return node
 
 async def run_simulation_loop():
     """Periodic simulation and live broadcast loop."""
-    print("[Simulator] ⚡ Live 6-Sensors Telemetry Stream Active (Rain: 5mm, Soil: 92%, Smoke: 18PPM [Normal], Flame: OFF, Vib: 0Hz [Normal], Temp: 26.5°C, Hum: 85%)...")
+    print("[Simulator] ⚡ Live 6-Sensors Telemetry Stream Active (Rayagada Continuous Physics Engine)...")
     while True:
-        await asyncio.sleep(2.5)
+        await asyncio.sleep(2.2)
         node1 = apply_live_fluctuations(LIVE_NODES["NODE_01"])
         payload = json.dumps(node1)
-        print(f"[LIVE -> WS] 📡 {node1['id']} | Rain: {node1['rainMm']}mm | Soil: {node1['soilMoisture']}% | Smoke: {node1['smokeLevel']} PPM (Normal) | Flame: CLEAR | Vib: 0Hz (Normal) | Temp: {node1['temp']}°C | Hum: {node1['humidity']}% | Risk: {node1['riskLevel']} ({node1['riskScore']}/100)")
+        print(f"[LoRa PKT #{node1['packetSequence']}] 📡 {node1['id']} | Rain: {node1['rainMm']}mm | Soil: {node1['soilMoisture']}% | Smoke: {node1['smokeLevel']} PPM | Flame: {'DETECTED' if node1['flameDetected'] else 'OFF'} | Vib: {'ACTIVE' if node1['vibration'] else 'OFF'} | Temp: {node1['temp']}°C | Hum: {node1['humidity']}% | RSSI: {node1['rssi']}dBm | Risk: {node1['riskLevel']} ({node1['riskScore']}/100)")
         await broadcast_message(payload)
 
 async def main():

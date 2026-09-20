@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { playEmergencySiren, playTacticalBeep, playAckChime } from '../utils/audioSiren';
 
-// Default initial nodes (Fire OFF, Smoke Normal 18 PPM, Vibration Normal 0 Hz, Rain 5mm, Soil 92%)
+// Baseline Realistic Physical Sensor State (Rayagada District - Kashipur Valley)
 const INITIAL_NODES = {
   "NODE_01": {
     id: "NODE_01",
@@ -11,40 +11,45 @@ const INITIAL_NODES = {
     latitude: 19.1950,
     longitude: 83.3950,
     riskLevel: "NORMAL",
-    riskScore: 28.5,
-    disasterType: "SOIL_SATURATION_MONITORING",
-    rainMm: 5,
-    rainPercent: 5,
-    rain: 5,
-    soilMoisture: 92,
-    soil: 92,
-    smokeLevel: 18,
-    smoke: 18,
+    riskScore: 18.5,
+    disasterType: "BASELINE_STABLE",
+    rainMm: 0.0,
+    rainPercent: 0,
+    rain: 0.0,
+    soilMoisture: 34.2,
+    soil: 34.2,
+    smokeLevel: 18.4,
+    smoke: 18.4,
     flameDetected: false,
     flame_detected: false,
     flame: 0,
+    flameIntensity: 0.0,
+    flameVoltage: 3.26,
     vibration: false,
-    vibrationFreq: 0,
-    vibrationHz: 0,
-    temp: 26.5,
-    temperature: 26.5,
-    humidity: 85,
+    vibrationFreq: 0.0,
+    vibrationHz: 0.0,
+    vibrationG: 0.02,
+    temp: 26.4,
+    temperature: 26.4,
+    humidity: 64.5,
     hopCount: 1,
-    rssi: -65,
+    rssi: -67,
+    snr: 8.6,
+    packetSequence: 1024,
     lastSeen: Date.now(),
-    risk: { flood: "LOW", landslide: "HIGH", fire: "LOW", cyclone: "LOW" },
+    risk: { flood: "LOW", landslide: "LOW", fire: "LOW", cyclone: "LOW" },
     status: "ONLINE"
   }
 };
 
 const INITIAL_HISTORY = [
-  { time: new Date(Date.now() - 15000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 4.8, soilMoisture: 91.5, smokeLevel: 17, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.3, humidity: 84.5, rssi: -65, riskScore: 28.0, nodeId: 'NODE_01' },
-  { time: new Date(Date.now() - 10000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 5.1, soilMoisture: 92.0, smokeLevel: 19, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.5, humidity: 85.0, rssi: -64, riskScore: 28.5, nodeId: 'NODE_01' },
-  { time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 5.0, soilMoisture: 92.0, smokeLevel: 18, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.5, humidity: 85.0, rssi: -65, riskScore: 28.5, nodeId: 'NODE_01' }
+  { time: new Date(Date.now() - 15000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 0.0, soilMoisture: 34.0, smokeLevel: 18.2, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.3, humidity: 64.8, rssi: -67, riskScore: 18.2, nodeId: 'NODE_01' },
+  { time: new Date(Date.now() - 10000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 0.0, soilMoisture: 34.1, smokeLevel: 18.6, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.4, humidity: 64.6, rssi: -66, riskScore: 18.4, nodeId: 'NODE_01' },
+  { time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), rain: 0.0, soilMoisture: 34.2, smokeLevel: 18.4, flameDetected: false, vibration: 0, vibrationFreq: 0, temp: 26.4, humidity: 64.5, rssi: -67, riskScore: 18.5, nodeId: 'NODE_01' }
 ];
 
 /**
- * Universal Packet Parser for the 6 physical sensors:
+ * Universal Packet Parser for 6 physical sensors:
  * Rain (Pin 34), Soil (Pin 35), Smoke (Pin 39), Flame (Pin 33), Vibration (Pin 32), DHT22 (Pin 4)
  */
 function parseAnyIncomingData(rawInput) {
@@ -81,41 +86,68 @@ function parseAnyIncomingData(rawInput) {
     }
   }
 
-  // 3. Pipe-separated string:
-  // V1|NORMAL|NONE|19.1950|83.3950|10.0|PKT#001|HOP:1|RAIN:0|SOIL:0|SMK:0|FLM:0|VIB:0|TEMP:24.5|HUM:75
+  // 3. Pipe-separated LoRa packet string:
+  // V1|SEQ:1024|LVL:NORMAL|EVT:BASELINE_STABLE|GPS:19.1950,83.3950|SCORE:18.5|...
   if (text.includes('|')) {
     const pipeIdx = text.indexOf('|');
     const firstWordStart = text.lastIndexOf(' ', pipeIdx);
     const cleanText = firstWordStart >= 0 ? text.substring(firstWordStart + 1) : text;
     const parts = cleanText.split('|');
 
-    if (parts.length >= 6) {
+    if (parts.length >= 4) {
       const mappedId = 'NODE_01';
-      const riskLevel = parts[1].trim();
-      const disasterType = parts[2].trim();
-      const lat = parseFloat(parts[3]) || 19.1950;
-      const lng = parseFloat(parts[4]) || 83.3950;
-      const riskScore = parseFloat(parts[5]) || 10.0;
-
-      let rain = 0;
-      let soil = 0;
-      let smoke = 0;
+      let riskLevel = 'NORMAL';
+      let disasterType = 'NONE';
+      let riskScore = 18.5;
+      let rain = 0.0;
+      let soil = 34.0;
+      let smoke = 18.0;
       let flm = false;
       let vib = false;
-      let temp = 24.5;
-      let hum = 75.0;
+      let temp = 26.4;
+      let hum = 64.5;
       let hop = 1;
+      let rssi = -67;
+      let snr = 8.6;
+      let seq = 1000;
 
-      for (let i = 6; i < parts.length; i++) {
+      for (let i = 1; i < parts.length; i++) {
         const p = parts[i].trim();
-        if (p.startsWith('HOP:')) hop = parseInt(p.replace('HOP:', ''), 10) || 1;
-        else if (p.startsWith('RAIN:')) rain = parseFloat(p.replace('RAIN:', '')) || 0;
-        else if (p.startsWith('SOIL:')) soil = parseFloat(p.replace('SOIL:', '')) || 0;
-        else if (p.startsWith('SMK:')) smoke = parseFloat(p.replace('SMK:', '')) || 0;
-        else if (p.startsWith('FLM:')) flm = ['1', 'true', 'TRUE', 'DETECTED'].includes(p.replace('FLM:', '').trim());
-        else if (p.startsWith('VIB:')) vib = ['1', 'true', 'TRUE', 'DETECTED'].includes(p.replace('VIB:', '').trim());
-        else if (p.startsWith('TEMP:')) temp = parseFloat(p.replace('TEMP:', '')) || 24.5;
-        else if (p.startsWith('HUM:')) hum = parseFloat(p.replace('HUM:', '')) || 75.0;
+        if (p.startsWith('LVL:')) riskLevel = p.replace('LVL:', '').trim();
+        else if (p.startsWith('EVT:')) disasterType = p.replace('EVT:', '').trim();
+        else if (p.startsWith('SCORE:')) riskScore = parseFloat(p.replace('SCORE:', '')) || 18.5;
+        else if (p.startsWith('SEQ:')) seq = parseInt(p.replace('SEQ:', ''), 10) || 1000;
+        else if (p.startsWith('HOP:')) hop = parseInt(p.replace('HOP:', ''), 10) || 1;
+        else if (p.startsWith('RAIN:')) {
+          const match = p.match(/RAIN:([0-9.]+)/);
+          if (match) rain = parseFloat(match[1]) || 0.0;
+        }
+        else if (p.startsWith('SOIL:')) {
+          const match = p.match(/SOIL:([0-9.]+)/);
+          if (match) soil = parseFloat(match[1]) || 34.0;
+        }
+        else if (p.startsWith('SMK:')) {
+          const match = p.match(/SMK:([0-9.]+)/);
+          if (match) smoke = parseFloat(match[1]) || 18.0;
+        }
+        else if (p.startsWith('FLM:')) flm = p.includes('1') || p.includes('true') || p.includes('TRUE');
+        else if (p.startsWith('VIB:')) vib = p.includes('1') || p.includes('true') || p.includes('TRUE');
+        else if (p.startsWith('TEMP:')) {
+          const match = p.match(/TEMP:([0-9.]+)/);
+          if (match) temp = parseFloat(match[1]) || 26.4;
+        }
+        else if (p.startsWith('HUM:')) {
+          const match = p.match(/HUM:([0-9.]+)/);
+          if (match) hum = parseFloat(match[1]) || 64.5;
+        }
+        else if (p.startsWith('RSSI:')) {
+          const match = p.match(/RSSI:(-?[0-9.]+)/);
+          if (match) rssi = parseInt(match[1], 10) || -67;
+        }
+        else if (p.startsWith('SNR:')) {
+          const match = p.match(/SNR:(\+?-?[0-9.]+)/);
+          if (match) snr = parseFloat(match[1]) || 8.6;
+        }
       }
 
       return {
@@ -124,28 +156,26 @@ function parseAnyIncomingData(rawInput) {
         name: 'Village 1: Kashipur Valley',
         village: 'Kashipur Valley',
         district: 'Rayagada, Odisha',
-        latitude: lat,
-        longitude: lng,
+        latitude: 19.1950,
+        longitude: 83.3950,
         riskLevel: riskLevel,
         riskScore: riskScore,
         disasterType: disasterType,
-        rainfall_mm: Math.round(rain),
-        rainMm: Math.round(rain),
-        rain: Math.round(rain),
-        soil_moisture: Math.round(soil),
-        soilMoisture: Math.round(soil),
-        soil: Math.round(soil),
-        smoke_level: Math.round(smoke),
-        smokeLevel: Math.round(smoke),
-        smoke: Math.round(smoke),
-        flame_detected: flm,
+        packetSequence: seq,
+        rainMm: rain,
+        rain: rain,
+        soilMoisture: soil,
+        soil: soil,
+        smokeLevel: smoke,
+        smoke: smoke,
         flameDetected: flm,
         vibration: vib,
         temperature: temp,
         temp: temp,
         humidity: hum,
         hopCount: hop,
-        rssi: -65,
+        rssi: rssi,
+        snr: snr,
         status: 'ONLINE',
         lastSeen: Date.now(),
         rawPacket: text
@@ -188,7 +218,6 @@ export function useDisasterWebSocket() {
 
   const wsRef = useRef(null);
   const reconnectTimerRef = useRef(null);
-  const simIntervalRef = useRef(null);
   const serialPortRef = useRef(null);
   const serialReaderRef = useRef(null);
 
@@ -200,65 +229,80 @@ export function useDisasterWebSocket() {
     ]);
   }, []);
 
-  // Standardize incoming node packet format (Node 1 Only - 6 Physical Sensors)
+  // Standardize incoming node packet format (Node 1 - 6 Physical Sensors)
   const normalizeNodeData = useCallback((raw) => {
     if (!raw) return null;
     const mappedId = "NODE_01";
     const existing = nodes["NODE_01"] || INITIAL_NODES["NODE_01"];
     
-    // 1. Rainfall
-    let rainMm = 0;
+    // 1. Rainfall (mm/h)
+    let rainMm = 0.0;
     if (raw.rainfall_mm !== undefined) rainMm = Number(raw.rainfall_mm);
     else if (raw.rainMm !== undefined) rainMm = Number(raw.rainMm);
     else if (raw.rain !== undefined) rainMm = Number(raw.rain);
     else if (existing) rainMm = existing.rainMm;
+    rainMm = Number(rainMm.toFixed(1));
 
-    // 2. Soil Moisture
-    let soilMoisture = 0;
+    // 2. Soil Moisture (%)
+    let soilMoisture = 34.0;
     if (raw.soil_moisture !== undefined) soilMoisture = Number(raw.soil_moisture);
     else if (raw.soilMoisture !== undefined) soilMoisture = Number(raw.soilMoisture);
     else if (raw.soil !== undefined) soilMoisture = Number(raw.soil);
     else if (existing) soilMoisture = existing.soilMoisture;
+    soilMoisture = Number(soilMoisture.toFixed(1));
 
-    // 3. Smoke / Gas
-    let smokeLevel = 0;
+    // 3. Smoke / Gas (PPM)
+    let smokeLevel = 18.0;
     if (raw.smoke_level !== undefined) smokeLevel = Number(raw.smoke_level);
     else if (raw.smokeLevel !== undefined) smokeLevel = Number(raw.smokeLevel);
     else if (raw.smoke !== undefined) smokeLevel = Number(raw.smoke);
+    else if (raw.smokePpm !== undefined) smokeLevel = Number(raw.smokePpm);
     else if (existing) smokeLevel = existing.smokeLevel;
+    smokeLevel = Number(smokeLevel.toFixed(1));
 
     // 4. Flame IR
     let flameDetected = false;
     if (raw.flame_detected !== undefined) flameDetected = Boolean(raw.flame_detected);
     else if (raw.flameDetected !== undefined) flameDetected = Boolean(raw.flameDetected);
-    else if (raw.flame !== undefined) flameDetected = typeof raw.flame === 'boolean' ? raw.flame : Number(raw.flame) > 50;
+    else if (raw.flame !== undefined) flameDetected = typeof raw.flame === 'boolean' ? raw.flame : Number(raw.flame) > 0;
     else if (existing) flameDetected = existing.flameDetected;
 
-    // 5. Vibration
-    const vibration = raw.vibration !== undefined ? Boolean(raw.vibration) : (existing ? existing.vibration : true);
-    const vibrationFreq = raw.vibrationFreq !== undefined ? Number(raw.vibrationFreq) : (raw.vibrationHz !== undefined ? Number(raw.vibrationHz) : (existing?.vibrationFreq || (vibration ? 380 : 0)));
+    const flameVoltage = raw.flameVoltage !== undefined ? Number(raw.flameVoltage) : (flameDetected ? 0.38 : 3.26);
+
+    // 5. Vibration (SW-420)
+    const vibration = raw.vibration !== undefined ? Boolean(raw.vibration) : (raw.vibration_detected !== undefined ? Boolean(raw.vibration_detected) : (existing ? existing.vibration : false));
+    const vibrationFreq = raw.vibrationFreq !== undefined ? Number(raw.vibrationFreq) : (raw.vibrationHz !== undefined ? Number(raw.vibrationHz) : (existing?.vibrationFreq || (vibration ? 38.0 : 0.0)));
+    const vibrationG = raw.vibrationG !== undefined ? Number(raw.vibrationG) : (vibration ? 0.75 : 0.02);
 
     // 6. DHT22 Climate
-    let temp = 38.5;
+    let temp = 26.4;
     if (raw.temperature !== undefined) temp = Number(raw.temperature);
+    else if (raw.temperatureC !== undefined) temp = Number(raw.temperatureC);
     else if (raw.temp !== undefined) temp = Number(raw.temp);
     else if (existing) temp = existing.temp;
+    temp = Number(temp.toFixed(1));
 
-    const humidity = raw.humidity !== undefined ? Number(raw.humidity) : (existing ? existing.humidity : 94);
+    let humidity = 64.5;
+    if (raw.humidity !== undefined) humidity = Number(raw.humidity);
+    else if (raw.humidityPct !== undefined) humidity = Number(raw.humidityPct);
+    else if (existing) humidity = existing.humidity;
+    humidity = Number(humidity.toFixed(1));
 
-    const rssi = raw.rssi !== undefined ? Number(raw.rssi) : (existing ? existing.rssi : -65);
+    const rssi = raw.rssi !== undefined ? Number(raw.rssi) : (raw.rssi_dbm !== undefined ? Number(raw.rssi_dbm) : (existing ? existing.rssi : -67));
+    const snr = raw.snr !== undefined ? Number(raw.snr) : (existing?.snr || 8.6);
     const hopCount = raw.hopCount !== undefined ? Number(raw.hopCount) : 1;
+    const packetSequence = raw.packetSequence !== undefined ? Number(raw.packetSequence) : (existing?.packetSequence ? existing.packetSequence + 1 : 1024);
 
     // Weighted risk computed from strictly the 6 physical sensors
     let calculatedRiskScore = raw.riskScore !== undefined ? Number(raw.riskScore) : null;
     if (calculatedRiskScore === null) {
-      const rainScore = (rainMm / 100) * 25;
-      const soilScore = (soilMoisture / 100) * 20;
-      const vibScore = vibration ? 20 : 0;
-      const flameScore = flameDetected ? 15 : 0;
-      const smokeScore = Math.min(10, (smokeLevel / 200) * 10);
-      const tempScore = temp > 40 ? 10 : 2;
-      calculatedRiskScore = Math.min(100, Math.round(rainScore + soilScore + vibScore + flameScore + smokeScore + tempScore));
+      const rainScore = (Math.min(100, rainMm) / 100.0) * 100.0;
+      const soilScore = (soilMoisture / 100.0) * 100.0;
+      const vibScore = vibration ? 100.0 : 0.0;
+      const flameScore = flameDetected ? 100.0 : 0.0;
+      const smokeScore = Math.min(100.0, (smokeLevel / 200.0) * 100.0);
+      const climateScore = temp > 42.0 ? 100.0 : (temp > 35.0 ? 50.0 : 10.0);
+      calculatedRiskScore = Number(Math.max(5.0, Math.min(100.0, (rainScore * 0.25) + (soilScore * 0.20) + (vibScore * 0.20) + (flameScore * 0.15) + (smokeScore * 0.10) + (climateScore * 0.10))).toFixed(1));
     }
 
     let calculatedRiskLevel = raw.riskLevel || (calculatedRiskScore >= 70 ? "CRITICAL" : calculatedRiskScore >= 40 ? "WARNING" : "NORMAL");
@@ -273,7 +317,7 @@ export function useDisasterWebSocket() {
       cyclone: (rainMm > 70 && humidity > 90) ? "HIGH" : "LOW"
     };
 
-    const disasterType = raw.disasterType || (flameDetected ? "WILDFIRE" : (vibration && soilMoisture > 75 ? "LANDSLIDE" : (rainMm > 60 ? "HEAVY_RAIN" : "WILDFIRE / LANDSLIDE")));
+    const disasterType = raw.disasterType || (flameDetected ? "WILDFIRE" : (vibration && soilMoisture > 75 ? "LANDSLIDE" : (rainMm > 60 ? "FLASH_FLOOD" : "BASELINE_STABLE")));
 
     return {
       id: mappedId,
@@ -282,11 +326,13 @@ export function useDisasterWebSocket() {
       district: 'Rayagada, Odisha',
       latitude: raw.latitude !== undefined ? raw.latitude : 19.1950,
       longitude: raw.longitude !== undefined ? raw.longitude : 83.3950,
+      elevation: 310,
       riskLevel: calculatedRiskLevel,
       riskScore: calculatedRiskScore,
       disasterType: disasterType,
+      packetSequence: packetSequence,
       rainMm: rainMm,
-      rainPercent: Math.min(100, rainMm),
+      rainPercent: Math.min(100, Math.round(rainMm)),
       rain: rainMm,
       soilMoisture: soilMoisture,
       soil: soilMoisture,
@@ -298,15 +344,19 @@ export function useDisasterWebSocket() {
       flameDetected: flameDetected,
       flame_detected: flameDetected,
       flame: flameDetected ? 1 : 0,
+      flameIntensity: flameDetected ? 94.5 : 0.0,
+      flameVoltage: flameVoltage,
       vibration: vibration,
       vibrationFreq: vibrationFreq,
       vibrationHz: vibrationFreq,
+      vibrationG: vibrationG,
       hopCount: hopCount,
       rssi: rssi,
+      snr: snr,
       lastSeen: Date.now(),
       risk: riskTypes,
       status: "ONLINE",
-      rawPacket: raw.rawPacket || `${mappedId}|${calculatedRiskLevel}|RAIN:${rainMm}mm|SOIL:${soilMoisture}%|SMK:${smokeLevel}|FLM:${flameDetected ? '1' : '0'}|VIB:${vibration ? '1' : '0'}`
+      rawPacket: raw.rawPacket || `V1|SEQ:${packetSequence}|LVL:${calculatedRiskLevel}|EVT:${disasterType}|RAIN:${rainMm}mm|SOIL:${soilMoisture}%|SMK:${smokeLevel}PPM|FLM:${flameDetected ? '1' : '0'}|VIB:${vibration ? '1' : '0'}|TEMP:${temp}C|HUM:${humidity}%|RSSI:${rssi}dBm`
     };
   }, [nodes]);
 
@@ -328,7 +378,7 @@ export function useDisasterWebSocket() {
       }));
 
       // Check for Critical Alerts
-      if (node.riskLevel === 'CRITICAL' || node.riskScore >= 70) {
+      if (node.riskLevel === 'CRITICAL' || node.riskLevel === 'EMERGENCY' || node.riskScore >= 70) {
         playEmergencySiren(2.0);
         const newAlert = {
           id: `ALT-${Date.now().toString().slice(-4)}`,
@@ -367,13 +417,24 @@ export function useDisasterWebSocket() {
       });
 
       addLog(
-        `[LIVE TELEMETRY] ${node.id} (${node.village}) ➔ Rain: ${node.rainMm}mm | Soil: ${node.soilMoisture}% | Smoke: ${node.smokeLevel} PPM | Flame: ${node.flameDetected ? 'YES' : 'NO'} | Vib: ${node.vibration ? 'YES' : 'NO'} | Temp: ${node.temp}°C`,
-        node.riskLevel === 'CRITICAL' ? 'danger' : node.riskLevel === 'WARNING' ? 'warn' : 'rx'
+        `[LoRa PKT #${node.packetSequence || 1024}] ${node.id} ➔ Rain: ${node.rainMm}mm | Soil: ${node.soilMoisture}% | Smoke: ${node.smokeLevel} PPM | Flame: ${node.flameDetected ? 'YES' : 'NO'} | Vib: ${node.vibration ? 'ACTIVE' : 'OFF'} | Temp: ${node.temp}°C | RSSI: ${node.rssi}dBm`,
+        (node.riskLevel === 'CRITICAL' || node.riskLevel === 'EMERGENCY') ? 'danger' : node.riskLevel === 'WARNING' ? 'warn' : 'rx'
       );
     });
   }, [normalizeNodeData, addLog]);
 
   handleIncomingDataRef.current = handleIncomingData;
+
+  // Send command to backend
+  const sendCommand = useCallback((cmd, extra = {}) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      const msg = JSON.stringify({ cmd, ...extra, timestamp: Date.now() });
+      wsRef.current.send(msg);
+      addLog(`[WS TX] Command sent: ${cmd}`, 'ws');
+      return true;
+    }
+    return false;
+  }, [addLog]);
 
   // Connect WebSocket
   const connectWebSocket = useCallback((url) => {
@@ -448,53 +509,48 @@ export function useDisasterWebSocket() {
       await port.open({ baudRate: 115200 });
       serialPortRef.current = port;
       setIsSerialConnected(true);
-      setSerialPortName('ESP32 USB Serial (115200 Baud)');
-      setConnectionStatus('CONNECTED');
-      setGatewayStatus('ONLINE');
-      playAckChime();
-      addLog('[Web Serial] ✅ Connected to ESP32 Hardware via USB Serial!', 'ack');
+      const portInfo = port.getInfo ? port.getInfo() : {};
+      const portTitle = portInfo.usbVendorId ? `USB COM (VID:${portInfo.usbVendorId.toString(16)})` : 'ESP32 Serial';
+      setSerialPortName(portTitle);
+      addLog(`[Web Serial] Connected to ${portTitle} at 115200 baud.`, 'ack');
 
       const textDecoder = new TextDecoderStream();
       port.readable.pipeTo(textDecoder.writable);
       const reader = textDecoder.readable.getReader();
       serialReaderRef.current = reader;
 
-      let lineBuffer = '';
       (async () => {
-        try {
-          while (true) {
+        let buffer = '';
+        while (true) {
+          try {
             const { value, done } = await reader.read();
             if (done) break;
             if (value) {
-              lineBuffer += value;
-              const lines = lineBuffer.split('\n');
-              lineBuffer = lines.pop();
-
+              buffer += value;
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
               for (const line of lines) {
-                const trimmed = line.trim();
-                if (trimmed) {
-                  const parsed = parseAnyIncomingData(trimmed);
-                  if (parsed) {
-                    handleIncomingData(parsed);
-                  }
+                const parsed = parseAnyIncomingData(line);
+                if (parsed && handleIncomingDataRef.current) {
+                  handleIncomingDataRef.current(parsed);
+                } else if (line.trim().length > 0) {
+                  addLog(`[ESP32 HW] ${line.trim()}`, 'rx');
                 }
               }
             }
+          } catch (readErr) {
+            console.warn('Serial read loop error:', readErr);
+            break;
           }
-        } catch (e) {
-          addLog(`[Web Serial Error] ${e.message}`, 'danger');
-        } finally {
-          setIsSerialConnected(false);
-          reader.releaseLock();
         }
       })();
 
       return true;
     } catch (err) {
-      addLog(`[Web Serial Cancelled/Error] ${err.message}`, 'warn');
+      addLog(`[Web Serial Error] ${err.message}`, 'danger');
       return false;
     }
-  }, [addLog, handleIncomingData]);
+  }, [addLog]);
 
   const disconnectUsbSerial = useCallback(async () => {
     try {
@@ -512,17 +568,6 @@ export function useDisasterWebSocket() {
     } catch (e) {
       console.warn('Serial close error', e);
     }
-  }, [addLog]);
-
-  // Send command to backend
-  const sendCommand = useCallback((cmd, extra = {}) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      const msg = JSON.stringify({ cmd, ...extra, timestamp: Date.now() });
-      wsRef.current.send(msg);
-      addLog(`[WS TX] Command sent: ${cmd}`, 'ws');
-      return true;
-    }
-    return false;
   }, [addLog]);
 
   // Audio Siren
@@ -552,70 +597,79 @@ export function useDisasterWebSocket() {
     addLog(`[ALERTS] Alert ${alertId} marked RESOLVED`, 'ack');
   }, [addLog]);
 
-  // Interactive Demo Simulation Scenarios Engine for 6 Sensors
+  // Interactive Demo Simulation Scenarios Engine
   const setSimulationScenario = useCallback((scenario) => {
     setActiveScenario(scenario);
-    setIsDemoMode(true);
     playTacticalBeep(1600, 0.12);
-    addLog(`[SIMULATOR] Switching to Scenario: ${scenario.toUpperCase()}`, 'sys');
+    addLog(`[SCENARIO] Switched to Scenario: ${scenario.toUpperCase()}`, 'sys');
 
-    const baseV1 = { ...INITIAL_NODES["NODE_01"] };
+    // Notify backend physics engine via WebSocket
+    sendCommand('SET_SCENARIO', { scenario });
 
-    if (scenario === 'normal') {
-      baseV1.rainMm = 0;
-      baseV1.soilMoisture = 25;
-      baseV1.smokeLevel = 10;
-      baseV1.flameDetected = false;
-      baseV1.vibration = false;
-      baseV1.temp = 24.5;
-      baseV1.humidity = 70;
-      baseV1.riskScore = 10;
-      baseV1.riskLevel = "NORMAL";
-      baseV1.disasterType = "NONE";
-      baseV1.risk = { flood: "LOW", landslide: "LOW", fire: "LOW", cyclone: "LOW" };
-    } else if (scenario === 'flood') {
-      baseV1.rainMm = 120;
-      baseV1.soilMoisture = 95;
-      baseV1.smokeLevel = 15;
-      baseV1.flameDetected = false;
-      baseV1.vibration = false;
-      baseV1.temp = 22.0;
-      baseV1.humidity = 98;
-      baseV1.riskScore = 92;
-      baseV1.riskLevel = "CRITICAL";
-      baseV1.disasterType = "FLASH_FLOOD";
-      baseV1.risk = { flood: "CRITICAL", landslide: "HIGH", fire: "LOW", cyclone: "HIGH" };
-      playEmergencySiren(2.0);
-    } else if (scenario === 'landslide') {
-      baseV1.rainMm = 75;
-      baseV1.soilMoisture = 99;
-      baseV1.vibration = true;
-      baseV1.smokeLevel = 10;
-      baseV1.flameDetected = false;
-      baseV1.temp = 21.0;
-      baseV1.humidity = 95;
-      baseV1.riskScore = 95;
-      baseV1.riskLevel = "CRITICAL";
-      baseV1.disasterType = "LANDSLIDE";
-      baseV1.risk = { flood: "HIGH", landslide: "CRITICAL", fire: "LOW", cyclone: "LOW" };
-      playEmergencySiren(2.0);
-    } else if (scenario === 'fire') {
-      baseV1.rainMm = 0;
-      baseV1.soilMoisture = 10;
-      baseV1.smokeLevel = 380;
-      baseV1.flameDetected = true;
-      baseV1.vibration = false;
-      baseV1.temp = 48.5;
-      baseV1.humidity = 18;
-      baseV1.riskScore = 96;
-      baseV1.riskLevel = "CRITICAL";
-      baseV1.disasterType = "WILDFIRE";
-      baseV1.risk = { flood: "LOW", landslide: "LOW", fire: "CRITICAL", cyclone: "LOW" };
-      playEmergencySiren(2.0);
-    }
+    // Also update offline fallback state smoothly
+    setNodes(prev => {
+      const current = prev["NODE_01"] || INITIAL_NODES["NODE_01"];
+      const updated = { ...current };
 
-    handleIncomingData([baseV1]);
-  }, [handleIncomingData, addLog]);
+      if (scenario === 'normal') {
+        updated.rainMm = 0.0;
+        updated.soilMoisture = 34.2;
+        updated.smokeLevel = 18.4;
+        updated.flameDetected = false;
+        updated.flame = 0;
+        updated.vibration = false;
+        updated.temp = 26.4;
+        updated.humidity = 64.5;
+        updated.riskScore = 18.5;
+        updated.riskLevel = "NORMAL";
+        updated.disasterType = "BASELINE_STABLE";
+      } else if (scenario === 'flood') {
+        updated.rainMm = 118.0;
+        updated.soilMoisture = 97.5;
+        updated.smokeLevel = 15.0;
+        updated.flameDetected = false;
+        updated.flame = 0;
+        updated.vibration = false;
+        updated.temp = 21.8;
+        updated.humidity = 98.0;
+        updated.riskScore = 92.5;
+        updated.riskLevel = "CRITICAL";
+        updated.disasterType = "FLASH_FLOOD";
+        playEmergencySiren(2.0);
+      } else if (scenario === 'landslide') {
+        updated.rainMm = 68.0;
+        updated.soilMoisture = 99.0;
+        updated.vibration = true;
+        updated.smokeLevel = 14.0;
+        updated.flameDetected = false;
+        updated.flame = 0;
+        updated.temp = 21.0;
+        updated.humidity = 96.0;
+        updated.riskScore = 94.0;
+        updated.riskLevel = "CRITICAL";
+        updated.disasterType = "LANDSLIDE";
+        playEmergencySiren(2.0);
+      } else if (scenario === 'fire') {
+        updated.rainMm = 0.0;
+        updated.soilMoisture = 12.0;
+        updated.smokeLevel = 385.0;
+        updated.flameDetected = true;
+        updated.flame = 1;
+        updated.vibration = false;
+        updated.temp = 49.5;
+        updated.humidity = 18.0;
+        updated.riskScore = 96.0;
+        updated.riskLevel = "CRITICAL";
+        updated.disasterType = "WILDFIRE";
+        playEmergencySiren(2.0);
+      }
+
+      return {
+        ...prev,
+        ["NODE_01"]: updated
+      };
+    });
+  }, [sendCommand, addLog]);
 
   const toggleDemoMode = useCallback(() => {
     setIsDemoMode(prev => {
@@ -637,23 +691,26 @@ export function useDisasterWebSocket() {
     };
   }, [connectWebSocket, serverUrl]);
 
-  // Periodic Real-Time Telemetry Auto-Fluctuation ("aur kuch kuch der mai change hote rahega")
+  // Standalone offline fallback generator (only triggers when WebSocket and Serial are disconnected)
   useEffect(() => {
-    const liveTimer = setInterval(() => {
+    const offlineTimer = setInterval(() => {
+      if (connectionStatus === 'CONNECTED' || isSerialConnected) {
+        return; // Backend/Serial is streaming live data, do not overwrite
+      }
+
       setNodes(prev => {
         const current = prev["NODE_01"] || INITIAL_NODES["NODE_01"];
-        const dRain = (Math.random() * 0.6 - 0.3);
-        const dSoil = (Math.random() * 0.8 - 0.4);
-        const dSmoke = Math.floor(Math.random() * 5 - 2);
-        const dTemp = (Math.random() * 0.3 - 0.15);
-        const dHum = (Math.random() * 0.6 - 0.3);
+        const dRain = (Math.random() * 0.4 - 0.2);
+        const dSoil = (Math.random() * 0.3 - 0.15);
+        const dSmoke = (Math.random() * 0.8 - 0.4);
+        const dTemp = (Math.random() * 0.16 - 0.08);
+        const dHum = (Math.random() * 0.4 - 0.2);
 
-        const newRain = Number(Math.max(3.0, Math.min(8.0, (current.rainMm || 5.0) + dRain)).toFixed(1));
-        const newSoil = Number(Math.max(89.0, Math.min(95.0, (current.soilMoisture || 92.0) + dSoil)).toFixed(1));
-        const newSmoke = Math.max(14, Math.min(24, (current.smokeLevel || 18) + dSmoke));
-        const newTemp = Number(Math.max(25.5, Math.min(27.5, (current.temp || 26.5) + dTemp)).toFixed(1));
-        const newHum = Number(Math.max(82.0, Math.min(88.0, (current.humidity || 85.0) + dHum)).toFixed(1));
-        const newRisk = Number(Math.max(20.0, Math.min(36.0, 28.5 + (Math.random() * 1.5 - 0.75))).toFixed(1));
+        const newRain = Number(Math.max(0.0, (current.rainMm || 0.0) + dRain).toFixed(1));
+        const newSoil = Number(Math.max(5.0, Math.min(99.5, (current.soilMoisture || 34.0) + dSoil)).toFixed(1));
+        const newSmoke = Number(Math.max(10.0, (current.smokeLevel || 18.0) + dSmoke).toFixed(1));
+        const newTemp = Number(Math.max(15.0, Math.min(50.0, (current.temp || 26.4) + dTemp)).toFixed(1));
+        const newHum = Number(Math.max(15.0, Math.min(99.0, (current.humidity || 64.5) + dHum)).toFixed(1));
 
         const updated = {
           ...current,
@@ -663,40 +720,13 @@ export function useDisasterWebSocket() {
           soil: newSoil,
           smokeLevel: newSmoke,
           smoke: newSmoke,
-          flameDetected: false,
-          flame_detected: false,
-          flame: 0,
-          vibration: false,
-          vibrationFreq: 0,
-          vibrationHz: 0,
           temp: newTemp,
           temperature: newTemp,
           humidity: newHum,
-          riskScore: newRisk,
-          riskLevel: 'NORMAL',
-          disasterType: 'SOIL_SATURATION_MONITORING',
+          packetSequence: (current.packetSequence || 1024) + 1,
+          rssi: -66 + Math.floor(Math.random() * 4 - 2),
           lastSeen: Date.now()
         };
-
-        // Update real-time history chart
-        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        setHistory(hPrev => {
-          const next = [...hPrev, {
-            time: timeStr,
-            rain: newRain,
-            soilMoisture: newSoil,
-            smokeLevel: newSmoke,
-            flameDetected: false,
-            temp: newTemp,
-            humidity: newHum,
-            vibration: 0,
-            vibrationFreq: 0,
-            rssi: current.rssi || -65,
-            riskScore: newRisk,
-            nodeId: 'NODE_01'
-          }];
-          return next.length > 25 ? next.slice(next.length - 25) : next;
-        });
 
         return {
           ...prev,
@@ -705,8 +735,8 @@ export function useDisasterWebSocket() {
       });
     }, 2500);
 
-    return () => clearInterval(liveTimer);
-  }, []);
+    return () => clearInterval(offlineTimer);
+  }, [connectionStatus, isSerialConnected]);
 
   return {
     serverUrl,

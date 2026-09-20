@@ -1,0 +1,28 @@
+{
+  "name": "disaster-management",
+  "version": "1.0.0",
+  "description": "[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)\r [![Platform: ESP32](https://img.shields.io/badge/Platform-ESP32-red.svg)](https://espressif.com)\r [![LoRa: 433MHz](https://img.shields.io/badge/LoRa-SX1278%20433MHz-green.svg)](https://semtech.com)\r [![Status: Production Ready](https://img.shields.io/badge/SIH-Exhibition%20Ready-brightgreen.svg)]()",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iqbal-khan786/Disaster-Management.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/iqbal-khan786/Disaster-Management/issues"
+  },
+  "homepage": "https://github.com/iqbal-khan786/Disaster-Management#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.1",
+    "express": "^5.2.1",
+    "sqlite3": "^6.0.1",
+    "ws": "^8.21.3"
+  }
+}
