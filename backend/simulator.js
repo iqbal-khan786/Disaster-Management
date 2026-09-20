@@ -112,53 +112,53 @@ class SensorPhysicsEngine {
     const target = this.scenarioTargets[this.scenario] || this.scenarioTargets.normal;
     const s = this.state;
 
-    // 1. Rain Physics: Smooth convergence + wind gust noise (FC-37 Rain sensor)
-    const rainDrift = (target.rainTarget - s.rainMm) * 0.18;
-    const rainNoise = target.rainTarget > 0 ? this._gaussianNoise(0, 1.8) : Math.max(0, this._gaussianNoise(0, 0.04));
-    s.rainMm = Math.max(0, s.rainMm + rainDrift + rainNoise);
+    // 1. Rain Physics: Steady 0.0 in dry weather, smooth slew during rain scenarios
+    if (target.rainTarget === 0) {
+      s.rainMm = 0.0;
+    } else {
+      const rainDrift = (target.rainTarget - s.rainMm) * 0.12;
+      const rainNoise = this._gaussianNoise(0, 0.5);
+      s.rainMm = Math.max(0.0, s.rainMm + rainDrift + rainNoise);
+    }
 
-    // 2. Soil Moisture Physics: Capacitive hysteresis (absorbs gradually, dries very slowly)
-    const absorptionRate = s.rainMm > 20 ? 0.12 : 0.05;
+    // 2. Soil Moisture Physics: Very gradual soil moisture changes (capacitive retention)
+    const absorptionRate = s.rainMm > 20 ? 0.04 : 0.015;
     const soilDrift = (target.soilTarget - s.soilMoisture) * absorptionRate;
-    const soilNoise = this._gaussianNoise(0, 0.15);
+    const soilNoise = this._gaussianNoise(0, 0.05);
     s.soilMoisture = Math.max(5.0, Math.min(99.8, s.soilMoisture + soilDrift + soilNoise));
 
-    // 3. Smoke & Gas Physics: Brownian thermal noise + plume turbulence (MQ-2 / MQ-135)
-    const smokeDrift = (target.smokeTarget - s.smokePpm) * 0.22;
-    const smokeNoise = target.smokeTarget > 100 ? this._gaussianNoise(0, 8.5) : this._gaussianNoise(0, 0.45);
+    // 3. Smoke & Gas Physics: Gentle ambient baseline stability
+    const smokeDrift = (target.smokeTarget - s.smokePpm) * 0.08;
+    const smokeNoise = target.smokeTarget > 100 ? this._gaussianNoise(0, 2.5) : this._gaussianNoise(0, 0.15);
     s.smokePpm = Math.max(8.0, Math.min(800.0, s.smokePpm + smokeDrift + smokeNoise));
 
     // 4. Flame IR Optical Sensor (KY-026)
     if (target.flame) {
       s.flameDetected = true;
-      s.flameVoltage = Math.max(0.18, Math.min(0.65, 0.38 + this._gaussianNoise(0, 0.08)));
+      s.flameVoltage = Math.max(0.18, Math.min(0.65, 0.38 + this._gaussianNoise(0, 0.03)));
     } else {
       s.flameDetected = false;
-      s.flameVoltage = Math.max(3.18, Math.min(3.30, 3.26 + this._gaussianNoise(0, 0.02)));
+      s.flameVoltage = 3.26;
     }
 
-    // 5. Vibration / Seismic Shock (SW-420 Piezo / ADXL345)
+    // 5. Vibration / Seismic Shock (SW-420 Piezo)
     if (target.vibration) {
-      // Intermittent tremor pulses during active geological / wind events
-      const isTremorPulse = Math.random() < 0.85;
-      s.vibrationActive = isTremorPulse;
-      s.vibrationHz = isTremorPulse ? Math.max(18.0, 38.0 + this._gaussianNoise(0, 6.0)) : 0.0;
-      s.vibrationG = isTremorPulse ? Math.max(0.35, 0.82 + this._gaussianNoise(0, 0.18)) : 0.04;
+      s.vibrationActive = true;
+      s.vibrationHz = Math.max(18.0, 38.0 + this._gaussianNoise(0, 2.0));
+      s.vibrationG = Math.max(0.35, 0.75 + this._gaussianNoise(0, 0.05));
     } else {
-      // Occasional micro-ambient noise pulse (1 out of 25 frames)
-      const microJitter = Math.random() < 0.04;
-      s.vibrationActive = microJitter;
-      s.vibrationHz = microJitter ? 8.5 : 0.0;
-      s.vibrationG = Math.max(0.01, 0.025 + this._gaussianNoise(0, 0.005));
+      s.vibrationActive = false;
+      s.vibrationHz = 0.0;
+      s.vibrationG = 0.02;
     }
 
-    // 6. DHT22 Climate Dynamics: Thermal inertia + evaporative humidity correlation
-    const tempDrift = (target.tempTarget - s.temperatureC) * 0.10;
-    const tempNoise = this._gaussianNoise(0, 0.08);
+    // 6. DHT22 Climate Dynamics: Heavy thermal inertia
+    const tempDrift = (target.tempTarget - s.temperatureC) * 0.04;
+    const tempNoise = this._gaussianNoise(0, 0.03);
     s.temperatureC = Math.max(10.0, Math.min(58.0, s.temperatureC + tempDrift + tempNoise));
 
-    const humDrift = (target.humTarget - s.humidityPct) * 0.12;
-    const humNoise = this._gaussianNoise(0, 0.35);
+    const humDrift = (target.humTarget - s.humidityPct) * 0.04;
+    const humNoise = this._gaussianNoise(0, 0.08);
     s.humidityPct = Math.max(12.0, Math.min(99.9, s.humidityPct + humDrift + humNoise));
 
     // 7. LoRa RF Physical Link Layer (SX1278 433MHz)
@@ -303,5 +303,5 @@ export function startSimulator(broadcastFn) {
     } catch (err) {
       console.error('[Simulator Error]', err.message);
     }
-  }, 2200);
+  }, 4500);
 }

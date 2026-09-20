@@ -173,6 +173,8 @@ export function SensorCharts({ history = [] }) {
       yRain: {
         type: 'linear',
         position: 'left',
+        min: 0,
+        suggestedMax: 50,
         grid: { color: '#d8e3eb', lineWidth: 1, drawOnChartArea: true },
         border: { color: '#b9cad8', width: 1 },
         ticks: { color: '#818cf8', font: { size: 9, family: 'JetBrains Mono' } },
@@ -199,6 +201,7 @@ export function SensorCharts({ history = [] }) {
         type: 'linear',
         position: 'left',
         min: 0,
+        suggestedMax: 100,
         grid: { color: '#d8e3eb', lineWidth: 1, drawOnChartArea: true },
         border: { color: '#b9cad8', width: 1 },
         ticks: { color: '#f59e0b', font: { size: 9, family: 'JetBrains Mono' } },
@@ -224,6 +227,8 @@ export function SensorCharts({ history = [] }) {
       yTemp: {
         type: 'linear',
         position: 'left',
+        min: 0,
+        suggestedMax: 50,
         grid: { color: '#d8e3eb', lineWidth: 1, drawOnChartArea: true },
         border: { color: '#b9cad8', width: 1 },
         ticks: { color: '#f43f5e', font: { size: 9, family: 'JetBrains Mono' } },

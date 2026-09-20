@@ -700,15 +700,14 @@ export function useDisasterWebSocket() {
 
       setNodes(prev => {
         const current = prev["NODE_01"] || INITIAL_NODES["NODE_01"];
-        const dRain = (Math.random() * 0.4 - 0.2);
-        const dSoil = (Math.random() * 0.3 - 0.15);
-        const dSmoke = (Math.random() * 0.8 - 0.4);
-        const dTemp = (Math.random() * 0.16 - 0.08);
-        const dHum = (Math.random() * 0.4 - 0.2);
+        const dSoil = (Math.random() * 0.1 - 0.05);
+        const dSmoke = (Math.random() * 0.2 - 0.1);
+        const dTemp = (Math.random() * 0.08 - 0.04);
+        const dHum = (Math.random() * 0.16 - 0.08);
 
-        const newRain = Number(Math.max(0.0, (current.rainMm || 0.0) + dRain).toFixed(1));
-        const newSoil = Number(Math.max(5.0, Math.min(99.5, (current.soilMoisture || 34.0) + dSoil)).toFixed(1));
-        const newSmoke = Number(Math.max(10.0, (current.smokeLevel || 18.0) + dSmoke).toFixed(1));
+        const newRain = current.rainMm > 0 ? Number(current.rainMm.toFixed(1)) : 0.0;
+        const newSoil = Number(Math.max(5.0, Math.min(99.5, (current.soilMoisture || 34.2) + dSoil)).toFixed(1));
+        const newSmoke = Number(Math.max(10.0, Math.min(800.0, (current.smokeLevel || 18.4) + dSmoke)).toFixed(1));
         const newTemp = Number(Math.max(15.0, Math.min(50.0, (current.temp || 26.4) + dTemp)).toFixed(1));
         const newHum = Number(Math.max(15.0, Math.min(99.0, (current.humidity || 64.5) + dHum)).toFixed(1));
 
@@ -724,7 +723,7 @@ export function useDisasterWebSocket() {
           temperature: newTemp,
           humidity: newHum,
           packetSequence: (current.packetSequence || 1024) + 1,
-          rssi: -66 + Math.floor(Math.random() * 4 - 2),
+          rssi: -67 + Math.floor(Math.random() * 2),
           lastSeen: Date.now()
         };
 
@@ -733,7 +732,7 @@ export function useDisasterWebSocket() {
           ["NODE_01"]: updated
         };
       });
-    }, 2500);
+    }, 4500);
 
     return () => clearInterval(offlineTimer);
   }, [connectionStatus, isSerialConnected]);
