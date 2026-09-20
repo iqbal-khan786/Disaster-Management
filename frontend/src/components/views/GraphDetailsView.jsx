@@ -11,16 +11,16 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import { Line, Bar } from 'react-chartjs-2';
 import {
+  Layers,
   Thermometer,
   Droplets,
-  TrendingUp,
+  Volume2,
   Download,
-  Flame,
-  CloudRain,
+  Calendar,
   Clock,
-  Activity
+  Sparkles
 } from 'lucide-react';
 
 ChartJS.register(
@@ -38,602 +38,566 @@ ChartJS.register(
 export function GraphDetailsView({ history = [], nodes = {} }) {
   const nodeList = Object.values(nodes);
   const [selectedVillageId, setSelectedVillageId] = useState('NODE_01');
-  const [timeRange, setTimeRange] = useState('1hr'); // '1hr', '6hr', '1day', '1week', '1month'
+
+  // Interactive View Modes matching the reference image:
+  // 1. Tab: 'dual' (Dual Overlay) | 'temp' (Temperature) | 'hum' (Humidity) | 'sound' (Sound Frequency)
+  const [activeTab, setActiveTab] = useState('dual');
+
+  // 2. Chart Type: 'area' | 'line' | 'bar'
+  const [chartType, setChartType] = useState('area');
+
+  // 3. Time Range: '1H' | '6H' | '24H' | '7D' | '30D'
+  const [timeRange, setTimeRange] = useState('7D');
 
   const currentNode = nodes[selectedVillageId] || nodeList[0] || {};
+  const baseTemp = Number(currentNode.temp || 33.5);
+  const baseHum = Number(currentNode.humidity || 58.0);
 
-  const timeRangeOptions = [
-    { id: '1hr', label: '1 Hour' },
-    { id: '6hr', label: '6 Hours' },
-    { id: '1day', label: '1 Day' },
-    { id: '1week', label: '1 Week' },
-    { id: '1month', label: '1 Month' }
-  ];
-
-  // Build telemetry data with smooth natural variations for each selected time interval
-  const telemetryData = useMemo(() => {
-    const baseTemp = Number(currentNode.temp || 26.5);
-    const baseHum = Number(currentNode.humidity || 68.0);
+  // Time-aligned telemetry data points corresponding to the selected range
+  const chartDataPoints = useMemo(() => {
     const now = Date.now();
 
-    // 1 Hour Range: 20 data points every 3 minutes
-    if (timeRange === '1hr') {
-      const count = 20;
-      const stepMs = 3 * 60 * 1000;
+    if (timeRange === '1H') {
+      const count = 12;
+      const stepMs = 5 * 60 * 1000;
       const points = [];
       for (let i = count - 1; i >= 0; i--) {
         const timeStr = new Date(now - i * stepMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const tWave = Math.sin((count - i) * 0.45) * 1.5 + Math.cos((count - i) * 0.25) * 0.5;
-        const hWave = -Math.sin((count - i) * 0.45) * 3.5 + Math.sin((count - i) * 0.7) * 1.2;
-        points.push({
-          time: timeStr,
-          temp: Number((baseTemp + tWave).toFixed(1)),
-          humidity: Number(Math.min(100, Math.max(10, baseHum + hWave)).toFixed(1))
-        });
+        const tVal = Number((baseTemp + Math.sin((count - i) * 0.5) * 1.2).toFixed(1));
+        const hVal = Number(Math.min(100, Math.max(10, baseHum - Math.sin((count - i) * 0.5) * 3.2)).toFixed(1));
+        const soundVal = Number((42 + Math.cos((count - i) * 0.8) * 8.5).toFixed(1));
+        points.push({ label: timeStr, temp: tVal, hum: hVal, sound: soundVal });
       }
       return points;
     }
 
-    // 6 Hours Range: 24 data points every 15 minutes
-    if (timeRange === '6hr') {
-      const count = 24;
-      const stepMs = 15 * 60 * 1000;
+    if (timeRange === '6H') {
+      const count = 12;
+      const stepMs = 30 * 60 * 1000;
       const points = [];
       for (let i = count - 1; i >= 0; i--) {
         const timeStr = new Date(now - i * stepMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const tWave = Math.sin((count - i) * 0.3) * 2.6 + Math.cos((count - i) * 0.15) * 0.7;
-        const hWave = -Math.sin((count - i) * 0.3) * 6.2 + Math.sin((count - i) * 0.5) * 1.8;
-        points.push({
-          time: timeStr,
-          temp: Number((baseTemp + tWave).toFixed(1)),
-          humidity: Number(Math.min(100, Math.max(10, baseHum + hWave)).toFixed(1))
-        });
+        const tVal = Number((baseTemp + Math.sin((count - i) * 0.4) * 2.2).toFixed(1));
+        const hVal = Number(Math.min(100, Math.max(10, baseHum - Math.sin((count - i) * 0.4) * 6.5)).toFixed(1));
+        const soundVal = Number((45 + Math.cos((count - i) * 0.6) * 12.0).toFixed(1));
+        points.push({ label: timeStr, temp: tVal, hum: hVal, sound: soundVal });
       }
       return points;
     }
 
-    // 1 Day (24 Hours) Range: 24 hourly data points with realistic diurnal curve
-    if (timeRange === '1day') {
-      const count = 24;
-      const stepMs = 60 * 60 * 1000;
-      const points = [];
-      for (let i = count - 1; i >= 0; i--) {
-        const d = new Date(now - i * stepMs);
-        const hour = d.getHours();
-        const timeStr = `${hour.toString().padStart(2, '0')}:00`;
-        const hourAngle = ((hour - 14) / 24) * 2 * Math.PI;
-        const diurnalTemp = Math.cos(hourAngle) * 4.2;
-        const diurnalHum = -Math.cos(hourAngle) * 11.5;
-        points.push({
-          time: timeStr,
-          temp: Number((baseTemp + diurnalTemp).toFixed(1)),
-          humidity: Number(Math.min(96, Math.max(26, baseHum + diurnalHum)).toFixed(1))
-        });
-      }
-      return points;
+    if (timeRange === '24H') {
+      const hours = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
+      return hours.map((h, idx) => {
+        const tVal = Number((baseTemp + Math.cos((idx - 4) * 0.7) * 4.2).toFixed(1));
+        const hVal = Number(Math.min(95, Math.max(25, baseHum - Math.cos((idx - 4) * 0.7) * 12.0)).toFixed(1));
+        const soundVal = Number((40 + Math.sin(idx * 0.8) * 14).toFixed(1));
+        return { label: h, temp: tVal, hum: hVal, sound: soundVal };
+      });
     }
 
-    // 1 Week (7 Days) Range: 7 daily observations
-    if (timeRange === '1week') {
-      const count = 7;
-      const stepMs = 24 * 60 * 60 * 1000;
-      const points = [];
-      for (let i = count - 1; i >= 0; i--) {
-        const d = new Date(now - i * stepMs);
-        const timeStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-        const weekWave = Math.sin((count - i) * 0.9) * 3.4;
-        const weekHumWave = -Math.sin((count - i) * 0.9) * 8.8;
-        points.push({
-          time: timeStr,
-          temp: Number((baseTemp + weekWave).toFixed(1)),
-          humidity: Number(Math.min(95, Math.max(30, baseHum + weekHumWave)).toFixed(1))
-        });
-      }
-      return points;
+    if (timeRange === '7D') {
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const temps = [34.5, 34.1, 34.8, 35.0, 34.3, 34.0, 34.5];
+      const hums = [58.0, 60.5, 63.8, 61.2, 57.0, 55.2, 62.0];
+      const sounds = [46.2, 48.0, 52.4, 47.1, 44.5, 43.8, 49.0];
+
+      return days.map((d, idx) => ({
+        label: d,
+        temp: temps[idx],
+        hum: hums[idx],
+        sound: sounds[idx]
+      }));
     }
 
-    // 1 Month (30 Days) Range: 30 daily continuous points
-    if (timeRange === '1month') {
-      const count = 30;
-      const stepMs = 24 * 60 * 60 * 1000;
+    if (timeRange === '30D') {
       const points = [];
-      for (let i = count - 1; i >= 0; i--) {
-        const d = new Date(now - i * stepMs);
-        const timeStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-        const monthWave = Math.sin((count - i) * 0.25) * 4.5 + Math.cos((count - i) * 0.12) * 1.2;
-        const monthHumWave = -Math.sin((count - i) * 0.25) * 12.0;
+      for (let i = 1; i <= 10; i++) {
+        const dayNum = i * 3;
         points.push({
-          time: timeStr,
-          temp: Number((baseTemp + monthWave).toFixed(1)),
-          humidity: Number(Math.min(95, Math.max(25, baseHum + monthHumWave)).toFixed(1))
+          label: `${dayNum} Sep`,
+          temp: Number((baseTemp + Math.sin(i * 0.5) * 3.5).toFixed(1)),
+          hum: Number(Math.min(95, Math.max(25, baseHum - Math.sin(i * 0.5) * 8.5)).toFixed(1)),
+          sound: Number((44 + Math.cos(i * 0.6) * 11).toFixed(1))
         });
       }
       return points;
     }
 
     return [];
-  }, [timeRange, currentNode]);
+  }, [timeRange, baseTemp, baseHum]);
 
-  const labels = telemetryData.map(d => d.time);
+  const labels = chartDataPoints.map(p => p.label);
 
-  // Statistics calculation for Temperature & Humidity
-  const stats = useMemo(() => {
-    const tempVals = telemetryData.map(d => d.temp);
-    const humVals = telemetryData.map(d => d.humidity);
+  // Common Theme Styling matching reference screenshot:
+  const isArea = chartType === 'area';
 
-    const calc = (arr, fallback = 25) => {
-      if (!arr || arr.length === 0) return { min: fallback, max: fallback, avg: fallback, cur: fallback, delta: 0 };
-      const min = Math.min(...arr);
-      const max = Math.max(...arr);
-      const avg = Number((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1));
-      const cur = arr[arr.length - 1];
-      const prev = arr[0] || cur;
-      const delta = Number((cur - prev).toFixed(1));
-      return { min, max, avg, cur, delta };
-    };
+  const datasets = [];
 
-    const tempStat = calc(tempVals, 26.5);
-    const humStat = calc(humVals, 65.0);
-
-    const t = tempStat.cur;
-    const r = humStat.cur;
-    const heatIndex = Number((t + 0.5555 * ((6.11 * Math.exp(5417.7530 * (1 / 273.16 - 1 / (273.15 + t))) * (r / 100)) - 10)).toFixed(1));
-    const dewPoint = Number((t - ((100 - r) / 5)).toFixed(1));
-
-    return {
-      temp: tempStat,
-      hum: humStat,
-      heatIndex: isNaN(heatIndex) ? t : heatIndex,
-      dewPoint: isNaN(dewPoint) ? 18.0 : dewPoint
-    };
-  }, [telemetryData]);
-
-  // Dual-Axis Chart.js Configuration matching original theme
-  const climateChartData = {
-    labels,
-    datasets: [
-      {
-        label: 'Ambient Temperature (°C)',
-        data: telemetryData.map(d => d.temp),
-        borderColor: '#f43f5e',
-        backgroundColor: 'rgba(244, 63, 94, 0.12)',
-        borderWidth: 2.5,
-        tension: 0.35,
-        fill: true,
-        yAxisID: 'yTemp',
-        pointRadius: 3.5,
-        pointBackgroundColor: '#f43f5e'
+  // Temperature Dataset (Orange / Amber)
+  if (activeTab === 'dual' || activeTab === 'temp') {
+    datasets.push({
+      type: chartType === 'bar' ? 'bar' : 'line',
+      label: 'Temperature (°C)',
+      data: chartDataPoints.map(p => p.temp),
+      borderColor: '#d97706', // Amber orange stroke
+      backgroundColor: (context) => {
+        if (chartType === 'bar') return 'rgba(217, 119, 6, 0.7)';
+        if (!isArea) return 'transparent';
+        const ctx = context.chart.ctx;
+        const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+        gradient.addColorStop(0, 'rgba(251, 191, 36, 0.28)');
+        gradient.addColorStop(0.7, 'rgba(251, 191, 36, 0.08)');
+        gradient.addColorStop(1, 'rgba(251, 191, 36, 0.0)');
+        return gradient;
       },
-      {
-        label: 'Relative Humidity (%)',
-        data: telemetryData.map(d => d.humidity),
-        borderColor: '#06b6d4',
-        backgroundColor: 'rgba(6, 182, 212, 0.08)',
-        borderWidth: 2.5,
-        borderDash: [4, 4],
-        tension: 0.35,
-        fill: false,
-        yAxisID: 'yHum',
-        pointRadius: 3.5,
-        pointBackgroundColor: '#06b6d4'
-      }
-    ]
-  };
+      borderWidth: 2.8,
+      tension: 0.35,
+      fill: isArea,
+      yAxisID: 'yTemp',
+      pointRadius: chartType === 'bar' ? 0 : 4.5,
+      pointHoverRadius: 7,
+      pointBackgroundColor: '#ffffff',
+      pointBorderColor: '#d97706',
+      pointBorderWidth: 2.5
+    });
+  }
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top',
-        labels: {
-          color: '#5d7488',
-          font: { size: 11, family: 'Outfit', weight: 'bold' },
-          boxWidth: 12,
-          usePointStyle: true
-        }
+  // Humidity Dataset (Royal Blue)
+  if (activeTab === 'dual' || activeTab === 'hum') {
+    datasets.push({
+      type: chartType === 'bar' ? 'bar' : 'line',
+      label: 'Humidity (%)',
+      data: chartDataPoints.map(p => p.hum),
+      borderColor: '#2563eb', // Royal Blue stroke
+      backgroundColor: (context) => {
+        if (chartType === 'bar') return 'rgba(37, 99, 235, 0.7)';
+        if (!isArea) return 'transparent';
+        const ctx = context.chart.ctx;
+        const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+        gradient.addColorStop(0, 'rgba(37, 99, 235, 0.18)');
+        gradient.addColorStop(0.7, 'rgba(37, 99, 235, 0.05)');
+        gradient.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+        return gradient;
       },
-      tooltip: {
-        backgroundColor: 'rgba(13, 22, 41, 0.95)',
-        borderColor: 'rgba(56, 189, 248, 0.3)',
-        borderWidth: 1,
-        titleColor: '#ffffff',
-        bodyColor: '#cbd5e1',
-        titleFont: { family: 'JetBrains Mono', size: 11 },
-        bodyFont: { family: 'Outfit', size: 10 }
+      borderWidth: 2.8,
+      tension: 0.35,
+      fill: isArea,
+      yAxisID: activeTab === 'hum' ? 'yTemp' : 'yHum',
+      pointRadius: chartType === 'bar' ? 0 : 4.5,
+      pointHoverRadius: 7,
+      pointBackgroundColor: '#ffffff',
+      pointBorderColor: '#2563eb',
+      pointBorderWidth: 2.5
+    });
+  }
+
+  // Sound Frequency Dataset (Purple)
+  if (activeTab === 'sound') {
+    datasets.push({
+      type: chartType === 'bar' ? 'bar' : 'line',
+      label: 'Sound Frequency (dB / Hz)',
+      data: chartDataPoints.map(p => p.sound),
+      borderColor: '#8b5cf6',
+      backgroundColor: (context) => {
+        if (chartType === 'bar') return 'rgba(139, 92, 246, 0.7)';
+        if (!isArea) return 'transparent';
+        const ctx = context.chart.ctx;
+        const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+        gradient.addColorStop(0, 'rgba(139, 92, 246, 0.25)');
+        gradient.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
+        return gradient;
+      },
+      borderWidth: 2.8,
+      tension: 0.35,
+      fill: isArea,
+      yAxisID: 'yTemp',
+      pointRadius: 4.5,
+      pointHoverRadius: 7,
+      pointBackgroundColor: '#ffffff',
+      pointBorderColor: '#8b5cf6',
+      pointBorderWidth: 2.5
+    });
+  }
+
+  const chartData = { labels, datasets };
+
+  // Precise Scale Configuration matching reference
+  const scalesConfig = {
+    x: {
+      grid: {
+        color: 'rgba(226, 232, 240, 0.6)',
+        borderColor: 'rgba(203, 213, 225, 0.8)',
+        drawBorder: true
+      },
+      ticks: {
+        color: '#64748b',
+        font: { family: 'Outfit', size: 12, weight: '500' }
       }
     },
-    scales: {
-      x: {
-        grid: {
-          color: '#d8e3eb',
-          lineWidth: 1,
-          drawOnChartArea: true
-        },
-        border: {
-          color: '#52697a',
-          width: 1.5
-        },
-        ticks: {
-          color: '#71869a',
-          font: { family: 'JetBrains Mono', size: 10 },
-          maxRotation: 0
-        }
+    yTemp: {
+      type: 'linear',
+      position: 'left',
+      min: 20,
+      max: 45,
+      ticks: {
+        color: '#d97706',
+        stepSize: 5,
+        font: { family: 'Outfit', size: 12, weight: '700' },
+        callback: (v) => `${v}°C`
       },
-      yTemp: {
-        type: 'linear',
-        position: 'left',
-        min: Math.max(0, Math.floor(stats.temp.min - 3)),
-        max: Math.ceil(stats.temp.max + 3),
-        grid: {
-          color: '#d8e3eb',
-          lineWidth: 1,
-          drawOnChartArea: true
-        },
-        border: {
-          color: '#b9cad8',
-          width: 1
-        },
-        ticks: {
-          color: '#f43f5e',
-          font: { family: 'JetBrains Mono', size: 10, weight: 'bold' },
-          callback: (v) => `${v}°C`
-        },
-        title: {
-          display: true,
-          text: 'Temp (°C)',
-          color: '#f43f5e',
-          font: { size: 11, weight: 'bold' }
-        }
+      title: {
+        display: true,
+        text: 'Temperature (°C)',
+        color: '#d97706',
+        font: { family: 'Outfit', size: 12, weight: '700' }
       },
-      yHum: {
-        type: 'linear',
-        position: 'right',
-        min: Math.max(0, Math.floor(stats.hum.min - 5)),
-        max: Math.min(100, Math.ceil(stats.hum.max + 5)),
-        grid: {
-          drawOnChartArea: false
-        },
-        border: {
-          color: '#b9cad8',
-          width: 1
-        },
-        ticks: {
-          color: '#06b6d4',
-          font: { family: 'JetBrains Mono', size: 10, weight: 'bold' },
-          callback: (v) => `${v}%`
-        },
-        title: {
-          display: true,
-          text: 'Humidity (%)',
-          color: '#06b6d4',
-          font: { size: 11, weight: 'bold' }
-        }
+      grid: {
+        color: 'rgba(226, 232, 240, 0.6)',
+        borderColor: 'rgba(203, 213, 225, 0.8)'
       }
     }
   };
 
+  if (activeTab === 'dual') {
+    scalesConfig.yHum = {
+      type: 'linear',
+      position: 'right',
+      min: 20,
+      max: 100,
+      ticks: {
+        color: '#2563eb',
+        stepSize: 10,
+        font: { family: 'Outfit', size: 12, weight: '700' },
+        callback: (v) => `${v}%`
+      },
+      title: {
+        display: true,
+        text: 'Humidity (%)',
+        color: '#2563eb',
+        font: { family: 'Outfit', size: 12, weight: '700' }
+      },
+      grid: {
+        drawOnChartArea: false,
+        borderColor: 'rgba(203, 213, 225, 0.8)'
+      }
+    };
+  }
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false
+    },
+    plugins: {
+      legend: {
+        display: false // We render custom top-right legends matching the screenshot
+      },
+      tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        borderColor: 'rgba(203, 213, 225, 0.4)',
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8,
+        titleColor: '#ffffff',
+        bodyColor: '#f8fafc',
+        titleFont: { family: 'Outfit', size: 12, weight: '700' },
+        bodyFont: { family: 'Outfit', size: 11 }
+      }
+    },
+    scales: scalesConfig
+  };
+
   // Export CSV Handler
   const handleExportCSV = () => {
-    const headers = 'Timestamp,Node_ID,Temperature_C,RelativeHumidity_pct\n';
-    const rows = telemetryData.map(h => `${h.time},${selectedVillageId},${h.temp},${h.humidity}`).join('\n');
+    const headers = 'Label,Temperature_C,Humidity_pct,Sound_dB\n';
+    const rows = chartDataPoints.map(p => `${p.label},${p.temp},${p.hum},${p.sound}`).join('\n');
     const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `DHT22_Climate_${selectedVillageId}_${Date.now()}.csv`);
+    link.setAttribute('download', `Sensor_Analytics_${timeRange}_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
 
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER & TELEMETRY CONTROLS                                        */}
-      {/* ========================================================================= */}
-      <div className="glass-panel" style={{
-        padding: '18px 20px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '14px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.25), rgba(6, 182, 212, 0.25))',
-            padding: '10px',
-            borderRadius: '10px',
-            color: '#38bdf8',
-            border: '1px solid rgba(56, 189, 248, 0.35)'
-          }}>
-            <Thermometer size={22} color="#f43f5e" />
-          </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h2 style={{
-                fontSize: '16px',
-                fontWeight: 900,
-                color: '#f8fafc',
-                textTransform: 'uppercase',
-                letterSpacing: '0.6px',
-                margin: 0
-              }}>
-                Temperature & Humidity Graph Analytics
-              </h2>
-              <span style={{
-                fontSize: '10px',
-                fontWeight: 800,
-                padding: '2px 8px',
-                borderRadius: '4px',
-                background: 'rgba(6, 182, 212, 0.2)',
-                color: '#06b6d4',
-                border: '1px solid rgba(6, 182, 212, 0.4)'
-              }}>
-                DHT22 TELEMETRY
-              </span>
-            </div>
-            <p style={{ fontSize: '11px', color: '#94a3b8', margin: '3px 0 0' }}>
-              Real-Time Continuous Dual-Axis Curve: Ambient Temperature (°C) and Relative Humidity (%)
-            </p>
-          </div>
-        </div>
-
-        {/* Sector Selector & Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          {/* Sector Buttons */}
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {nodeList.map(node => (
-              <button
-                key={node.id}
-                onClick={() => setSelectedVillageId(node.id)}
-                style={{
-                  background: selectedVillageId === node.id ? 'rgba(56, 189, 248, 0.25)' : 'rgba(255, 255, 255, 0.04)',
-                  border: selectedVillageId === node.id ? '1px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.1)',
-                  color: selectedVillageId === node.id ? '#38bdf8' : '#cbd5e1',
-                  padding: '6px 12px',
-                  borderRadius: '6px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}
-              >
-                {node.name.split(':')[0]}
-              </button>
-            ))}
-          </div>
-
-          {/* Time Range Filter: 1hr, 6hr, 1day, 1week, 1month */}
-          <div style={{
-            display: 'flex',
-            background: 'rgba(0, 0, 0, 0.4)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            borderRadius: '6px',
-            padding: '2px',
-            gap: '2px'
-          }}>
-            {timeRangeOptions.map(opt => (
-              <button
-                key={opt.id}
-                onClick={() => setTimeRange(opt.id)}
-                style={{
-                  background: timeRange === opt.id ? '#38bdf8' : 'transparent',
-                  color: timeRange === opt.id ? '#0f172a' : '#94a3b8',
-                  border: 'none',
-                  padding: '4px 9px',
-                  borderRadius: '4px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Export CSV Button */}
-          <button
-            onClick={handleExportCSV}
-            style={{
-              background: 'rgba(16, 185, 129, 0.15)',
-              border: '1px solid #10b981',
-              color: '#34d399',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              fontSize: '11px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <Download size={13} />
-            Export CSV
-          </button>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 2. STATISTICAL SUMMARY CARDS (MATCHING ORIGINAL THEME)                    */}
+      {/* MAIN WHITE/LIGHT-GLASS CARD MATCHING USER REFERENCE SCREENSHOT            */}
       {/* ========================================================================= */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '12px'
+        background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+        border: '1px solid #e2e8f0',
+        borderRadius: '16px',
+        padding: '20px 24px',
+        boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        color: '#1e293b'
       }}>
-        {/* Metric 1: Temperature */}
-        <div className="glass-card" style={{ padding: '14px', borderLeft: '4px solid #f43f5e' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8' }}>
-            <span>Ambient Temperature</span>
-            <Thermometer size={15} color="#f43f5e" />
-          </div>
-          <div style={{ fontSize: '22px', fontWeight: 900, color: '#f43f5e', fontFamily: 'JetBrains Mono', margin: '4px 0' }}>
-            {stats.temp.cur} <span style={{ fontSize: '12px', color: '#94a3b8' }}>°C</span>
-          </div>
-          <div style={{ fontSize: '10px', color: '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>
-            <span>Peak: <b>{stats.temp.max}°C</b></span>
-            <span>Min: <b>{stats.temp.min}°C</b></span>
-            <span>Mean: <b>{stats.temp.avg}°C</b></span>
-          </div>
-        </div>
 
-        {/* Metric 2: Relative Humidity */}
-        <div className="glass-card" style={{ padding: '14px', borderLeft: '4px solid #06b6d4' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8' }}>
-            <span>Relative Humidity</span>
-            <Droplets size={15} color="#06b6d4" />
-          </div>
-          <div style={{ fontSize: '22px', fontWeight: 900, color: '#06b6d4', fontFamily: 'JetBrains Mono', margin: '4px 0' }}>
-            {stats.hum.cur} <span style={{ fontSize: '12px', color: '#94a3b8' }}>%</span>
-          </div>
-          <div style={{ fontSize: '10px', color: '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>
-            <span>Peak: <b>{stats.hum.max}%</b></span>
-            <span>Min: <b>{stats.hum.min}%</b></span>
-            <span>Mean: <b>{stats.hum.avg}%</b></span>
-          </div>
-        </div>
+        {/* ------------------------------------------------------------------------- */}
+        {/* TOP BAR: SENSOR TABS (LEFT) & CONTROLS (RIGHT)                            */}
+        {/* ------------------------------------------------------------------------- */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '14px',
+          borderBottom: '1px solid #f1f5f9',
+          paddingBottom: '16px'
+        }}>
 
-        {/* Metric 3: Apparent Heat Index */}
-        <div className="glass-card" style={{ padding: '14px', borderLeft: '4px solid #f59e0b' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8' }}>
-            <span>Apparent Heat Index</span>
-            <Flame size={15} color="#f59e0b" />
-          </div>
-          <div style={{ fontSize: '22px', fontWeight: 900, color: '#f59e0b', fontFamily: 'JetBrains Mono', margin: '4px 0' }}>
-            {stats.heatIndex} <span style={{ fontSize: '12px', color: '#94a3b8' }}>°C</span>
-          </div>
-          <div style={{ fontSize: '10px', color: '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>
-            <span>Thermal Stress:</span>
-            <b style={{ color: stats.heatIndex > 35 ? '#ef4444' : '#34d399' }}>
-              {stats.heatIndex > 38 ? 'HEAT CAUTION' : 'NOMINAL COMFORT'}
-            </b>
-          </div>
-        </div>
+          {/* Left Group: Sensor View Tabs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            
+            {/* 1. Dual Overlay Tab */}
+            <button
+              onClick={() => setActiveTab('dual')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '7px',
+                padding: '8px 16px',
+                borderRadius: '10px',
+                border: activeTab === 'dual' ? '1.5px solid #fcd34d' : '1px solid #e2e8f0',
+                background: activeTab === 'dual' ? '#fef3c7' : '#ffffff',
+                color: activeTab === 'dual' ? '#d97706' : '#64748b',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: activeTab === 'dual' ? '0 2px 8px rgba(217, 119, 6, 0.15)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Layers size={15} color={activeTab === 'dual' ? '#d97706' : '#64748b'} />
+              Dual Overlay
+            </button>
 
-        {/* Metric 4: Dew Point */}
-        <div className="glass-card" style={{ padding: '14px', borderLeft: '4px solid #10b981' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8' }}>
-            <span>Condensation Dew Point</span>
-            <CloudRain size={15} color="#10b981" />
+            {/* 2. Temperature Tab */}
+            <button
+              onClick={() => setActiveTab('temp')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '7px',
+                padding: '8px 16px',
+                borderRadius: '10px',
+                border: activeTab === 'temp' ? '1.5px solid #fcd34d' : '1px solid #e2e8f0',
+                background: activeTab === 'temp' ? '#fef3c7' : '#ffffff',
+                color: activeTab === 'temp' ? '#d97706' : '#64748b',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Thermometer size={15} color={activeTab === 'temp' ? '#d97706' : '#64748b'} />
+              Temperature
+            </button>
+
+            {/* 3. Humidity Tab */}
+            <button
+              onClick={() => setActiveTab('hum')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '7px',
+                padding: '8px 16px',
+                borderRadius: '10px',
+                border: activeTab === 'hum' ? '1.5px solid #fcd34d' : '1px solid #e2e8f0',
+                background: activeTab === 'hum' ? '#fef3c7' : '#ffffff',
+                color: activeTab === 'hum' ? '#d97706' : '#64748b',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Droplets size={15} color={activeTab === 'hum' ? '#d97706' : '#64748b'} />
+              Humidity
+            </button>
+
+            {/* 4. Sound Frequency Tab */}
+            <button
+              onClick={() => setActiveTab('sound')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '7px',
+                padding: '8px 16px',
+                borderRadius: '10px',
+                border: activeTab === 'sound' ? '1.5px solid #fcd34d' : '1px solid #e2e8f0',
+                background: activeTab === 'sound' ? '#fef3c7' : '#ffffff',
+                color: activeTab === 'sound' ? '#d97706' : '#64748b',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Volume2 size={15} color={activeTab === 'sound' ? '#d97706' : '#64748b'} />
+              Sound Frequency
+            </button>
           </div>
-          <div style={{ fontSize: '22px', fontWeight: 900, color: '#10b981', fontFamily: 'JetBrains Mono', margin: '4px 0' }}>
-            {stats.dewPoint} <span style={{ fontSize: '12px', color: '#94a3b8' }}>°C</span>
-          </div>
-          <div style={{ fontSize: '10px', color: '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>
-            <span>Moisture State:</span>
-            <b style={{ color: '#34d399' }}>VAPOR STABLE</b>
-          </div>
-        </div>
-      </div>
 
-      {/* ========================================================================= */}
-      {/* 3. DEDICATED MAIN GRAPH CANVAS (GLASS PANEL THEME)                         */}
-      {/* ========================================================================= */}
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-          <div>
-            <h3 style={{ fontSize: '14px', fontWeight: 900, color: '#f8fafc', textTransform: 'uppercase', letterSpacing: '0.6px', margin: 0 }}>
-              Dual-Axis Temperature (°C) vs Relative Humidity (%) Live Curve
-            </h3>
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>
-              Red Curve: Ambient Temperature (°C) on Left Axis | Blue Curve: Relative Humidity (%) on Right Axis
-            </span>
-          </div>
+          {/* Right Group: Area/Line/Bar + Time Filters + Export */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#f43f5e', fontWeight: 700 }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f43f5e', display: 'inline-block' }} />
-              Temp (°C)
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#06b6d4', fontWeight: 700 }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#06b6d4', display: 'inline-block' }} />
-              Humidity (%)
-            </span>
-          </div>
-        </div>
-
-        {/* Chart Canvas */}
-        <div style={{ position: 'relative', width: '100%', height: '360px' }}>
-          <Line data={climateChartData} options={chartOptions} />
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 4. REAL-TIME LOG STREAM TABLE (MATCHING ORIGINAL THEME)                   */}
-      {/* ========================================================================= */}
-      <div className="glass-panel" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.6px', margin: 0 }}>
-            DHT22 High-Precision Climate Stream Logs ({telemetryData.length} Telemetry Packets)
-          </h3>
-          <span style={{ fontSize: '11px', color: '#94a3b8' }}>
-            AOSONG DHT22 Semiconductor Sensor Protocol • Auto-Polled
-          </span>
-        </div>
-
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ background: 'rgba(255, 255, 255, 0.04)', color: '#94a3b8', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                <th style={{ padding: '8px 12px' }}>Packet Time</th>
-                <th style={{ padding: '8px 12px' }}>Node Sector</th>
-                <th style={{ padding: '8px 12px' }}>Ambient Temp (°C)</th>
-                <th style={{ padding: '8px 12px' }}>Relative Humidity (%)</th>
-                <th style={{ padding: '8px 12px' }}>Apparent Heat Index</th>
-                <th style={{ padding: '8px 12px' }}>Dew Point (°C)</th>
-                <th style={{ padding: '8px 12px' }}>Environmental Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {telemetryData.slice(-8).reverse().map((item, idx) => {
-                const temp = item.temp;
-                const hum = item.humidity;
-                const isWarm = temp > 32;
-                const isHumid = hum > 75;
-
+            {/* Chart Type Toggle: Area | Line | Bar */}
+            <div style={{
+              display: 'flex',
+              background: '#f1f5f9',
+              border: '1px solid #e2e8f0',
+              borderRadius: '10px',
+              padding: '3px'
+            }}>
+              {['area', 'line', 'bar'].map((type) => {
+                const isActive = chartType === type;
+                const label = type.charAt(0).toUpperCase() + type.slice(1);
                 return (
-                  <tr key={idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                    <td style={{ padding: '10px 12px', color: '#cbd5e1', fontFamily: 'JetBrains Mono' }}>
-                      {item.time}
-                    </td>
-                    <td style={{ padding: '10px 12px', color: '#38bdf8', fontWeight: 700 }}>
-                      {selectedVillageId}
-                    </td>
-                    <td style={{ padding: '10px 12px', fontWeight: 800, color: '#f43f5e', fontFamily: 'JetBrains Mono' }}>
-                      {temp} °C
-                    </td>
-                    <td style={{ padding: '10px 12px', fontWeight: 800, color: '#06b6d4', fontFamily: 'JetBrains Mono' }}>
-                      {hum} %
-                    </td>
-                    <td style={{ padding: '10px 12px', color: '#f59e0b', fontFamily: 'JetBrains Mono' }}>
-                      {stats.heatIndex} °C
-                    </td>
-                    <td style={{ padding: '10px 12px', color: '#10b981', fontFamily: 'JetBrains Mono' }}>
-                      {stats.dewPoint} °C
-                    </td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <span style={{
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        background: isWarm || isHumid ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                        color: isWarm || isHumid ? '#f59e0b' : '#34d399',
-                        fontWeight: 700
-                      }}>
-                        {isWarm ? 'WARM LOAD' : (isHumid ? 'HEAVY MOISTURE' : 'OPTIMAL COMFORT')}
-                      </span>
-                    </td>
-                  </tr>
+                  <button
+                    key={type}
+                    onClick={() => setChartType(type)}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: isActive ? '#fef3c7' : 'transparent',
+                      color: isActive ? '#d97706' : '#64748b',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {label}
+                  </button>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Time Range Selector: 1H | 6H | 24H | 7D | 30D */}
+            <div style={{
+              display: 'flex',
+              background: '#f1f5f9',
+              border: '1px solid #e2e8f0',
+              borderRadius: '10px',
+              padding: '3px'
+            }}>
+              {['1H', '6H', '24H', '7D', '30D'].map((range) => {
+                const isActive = timeRange === range;
+                return (
+                  <button
+                    key={range}
+                    onClick={() => setTimeRange(range)}
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: isActive ? '#fef3c7' : 'transparent',
+                      color: isActive ? '#d97706' : '#64748b',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {range}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Export Button */}
+            <button
+              onClick={handleExportCSV}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '7px 14px',
+                borderRadius: '10px',
+                border: '1px solid #e2e8f0',
+                background: '#ffffff',
+                color: '#475569',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Download size={14} color="#475569" />
+              Export
+            </button>
+
+          </div>
         </div>
+
+        {/* ------------------------------------------------------------------------- */}
+        {/* LEGEND ROW (TOP RIGHT INSIDE CARD)                                        */}
+        {/* ------------------------------------------------------------------------- */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px', padding: '0 8px' }}>
+          {(activeTab === 'dual' || activeTab === 'temp') && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+              <span style={{
+                width: '12px',
+                height: '12px',
+                borderRadius: '50%',
+                border: '2.5px solid #d97706',
+                background: '#ffffff',
+                display: 'inline-block'
+              }} />
+              Temperature (°C)
+            </div>
+          )}
+
+          {(activeTab === 'dual' || activeTab === 'hum') && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+              <span style={{
+                width: '12px',
+                height: '12px',
+                borderRadius: '50%',
+                border: '2.5px solid #2563eb',
+                background: '#ffffff',
+                display: 'inline-block'
+              }} />
+              Humidity (%)
+            </div>
+          )}
+
+          {activeTab === 'sound' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+              <span style={{
+                width: '12px',
+                height: '12px',
+                borderRadius: '50%',
+                border: '2.5px solid #8b5cf6',
+                background: '#ffffff',
+                display: 'inline-block'
+              }} />
+              Sound Frequency (dB)
+            </div>
+          )}
+        </div>
+
+        {/* ------------------------------------------------------------------------- */}
+        {/* MAIN CHART CANVAS                                                         */}
+        {/* ------------------------------------------------------------------------- */}
+        <div style={{ position: 'relative', width: '100%', height: '370px' }}>
+          {chartType === 'bar' ? (
+            <Bar data={chartData} options={chartOptions} />
+          ) : (
+            <Line data={chartData} options={chartOptions} />
+          )}
+        </div>
+
       </div>
 
     </div>
