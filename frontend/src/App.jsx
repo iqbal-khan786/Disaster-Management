@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import { useDisasterWebSocket } from './hooks/useDisasterWebSocket';
-import { Header } from './components/Header';
-import { Sidebar } from './components/Sidebar';
-import { OverviewView } from './components/views/OverviewView';
-import { LiveMonitoringView } from './components/views/LiveMonitoringView';
-import { VillageNetworkView } from './components/views/VillageNetworkView';
-import { RiskAnalysisView } from './components/views/RiskAnalysisView';
-import { AlertsCenterView } from './components/views/AlertsCenterView';
-import { SensorNodesView } from './components/views/SensorNodesView';
-import { HistoricalDataView } from './components/views/HistoricalDataView';
-import { RescueOperationsView } from './components/views/RescueOperationsView';
-import { GraphDetailsView } from './components/views/GraphDetailsView';
-import { SystemSettingsView } from './components/views/SystemSettingsView';
+import React, { useState } from "react";
+import { useDisasterWebSocket } from "./hooks/useDisasterWebSocket";
+import { Header } from "./components/Header";
+import { Sidebar } from "./components/Sidebar";
+import { OverviewView } from "./components/views/OverviewView";
+import { LiveMonitoringView } from "./components/views/LiveMonitoringView";
+import { VillageNetworkView } from "./components/views/VillageNetworkView";
+import { RiskAnalysisView } from "./components/views/RiskAnalysisView";
+import { AlertsCenterView } from "./components/views/AlertsCenterView";
+import { SensorNodesView } from "./components/views/SensorNodesView";
+import { HistoricalDataView } from "./components/views/HistoricalDataView";
+import { RescueOperationsView } from "./components/views/RescueOperationsView";
+import { GraphDetailsView } from "./components/views/GraphDetailsView";
+import { SystemSettingsView } from "./components/views/SystemSettingsView";
 
-import { VillageDetailModal } from './components/VillageDetailModal';
-import { DispatchModal } from './components/DispatchModal';
+import { VillageDetailModal } from "./components/VillageDetailModal";
+import { DispatchModal } from "./components/DispatchModal";
 
 export default function App() {
   const {
@@ -37,14 +37,14 @@ export default function App() {
     acknowledgeAlert,
     resolveAlert,
     setSimulationScenario,
-    toggleDemoMode
+    toggleDemoMode,
   } = useDisasterWebSocket();
 
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   const [selectedDetailNode, setSelectedDetailNode] = useState(null);
   const [selectedDispatchNode, setSelectedDispatchNode] = useState(null);
 
-  const activeAlertCount = alerts.filter(a => a.status === 'active').length;
+  const activeAlertCount = alerts.filter((a) => a.status === "active").length;
 
   const handleOpenDispatch = (node) => {
     setSelectedDispatchNode(node);
@@ -55,7 +55,9 @@ export default function App() {
   };
 
   // Keep selectedDetailNode synchronized with live data
-  const activeDetailNode = selectedDetailNode ? (nodes[selectedDetailNode.id] || selectedDetailNode) : null;
+  const activeDetailNode = selectedDetailNode
+    ? nodes[selectedDetailNode.id] || selectedDetailNode
+    : null;
 
   return (
     <div className="app-container">
@@ -87,7 +89,7 @@ export default function App() {
         {/* Central Dynamic View Area */}
         <main className="main-content">
           {/* Active Navigation Views Switcher */}
-          {activeTab === 'overview' && (
+          {activeTab === "overview" && (
             <OverviewView
               nodes={nodes}
               history={history}
@@ -101,7 +103,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'monitoring' && (
+          {activeTab === "monitoring" && (
             <LiveMonitoringView
               nodes={nodes}
               onSelectNode={setSelectedDetailNode}
@@ -110,14 +112,11 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'graphs' && (
-            <GraphDetailsView
-              history={history}
-              nodes={nodes}
-            />
+          {activeTab === "graphs" && (
+            <GraphDetailsView history={history} nodes={nodes} />
           )}
 
-          {activeTab === 'network' && (
+          {activeTab === "network" && (
             <VillageNetworkView
               nodes={nodes}
               gatewayStatus={gatewayStatus}
@@ -126,13 +125,9 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'risk' && (
-            <RiskAnalysisView
-              nodes={nodes}
-            />
-          )}
+          {activeTab === "risk" && <RiskAnalysisView nodes={nodes} />}
 
-          {activeTab === 'alerts' && (
+          {activeTab === "alerts" && (
             <AlertsCenterView
               alerts={alerts}
               onAcknowledge={acknowledgeAlert}
@@ -141,28 +136,25 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'nodes' && (
+          {activeTab === "nodes" && (
             <SensorNodesView
               nodes={nodes}
               onSelectNode={setSelectedDetailNode}
             />
           )}
 
-          {activeTab === 'history' && (
-            <HistoricalDataView
-              history={history}
-              nodes={nodes}
-            />
+          {activeTab === "history" && (
+            <HistoricalDataView history={history} nodes={nodes} />
           )}
 
-          {activeTab === 'rescue' && (
+          {activeTab === "rescue" && (
             <RescueOperationsView
               nodes={nodes}
               onOpenDispatch={handleOpenDispatch}
             />
           )}
 
-          {activeTab === 'settings' && (
+          {activeTab === "settings" && (
             <SystemSettingsView
               serverUrl={serverUrl}
               onConnectWebSocket={connectWebSocket}

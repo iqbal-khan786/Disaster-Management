@@ -19,7 +19,7 @@ function getAudioContext() {
       audioContext = new AudioCtx();
     }
   }
-  if (audioContext && audioContext.state === 'suspended') {
+  if (audioContext && audioContext.state === "suspended") {
     audioContext.resume();
   }
   return audioContext;
@@ -37,7 +37,7 @@ export function playEmergencySiren(durationSec = 2.0, volume = 0.25) {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = 'sawtooth';
+    osc.type = "sawtooth";
     const now = ctx.currentTime;
 
     // Pitch sweep (Wail siren 700Hz -> 1800Hz -> 700Hz)
@@ -65,7 +65,11 @@ export function playEmergencySiren(durationSec = 2.0, volume = 0.25) {
 /**
  * Play single tactical feedback beep
  */
-export function playTacticalBeep(freq = 1200, durationSec = 0.18, volume = 0.12) {
+export function playTacticalBeep(
+  freq = 1200,
+  durationSec = 0.18,
+  volume = 0.12,
+) {
   if (isAudioMuted) return;
   try {
     const ctx = getAudioContext();
@@ -74,7 +78,7 @@ export function playTacticalBeep(freq = 1200, durationSec = 0.18, volume = 0.12)
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = 'sine';
+    osc.type = "sine";
     const now = ctx.currentTime;
 
     osc.frequency.setValueAtTime(freq, now);
@@ -104,7 +108,7 @@ export function playAckChime() {
     [660, 880, 1320].forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = 'triangle';
+      osc.type = "triangle";
       osc.frequency.setValueAtTime(freq, now + idx * 0.08);
       gain.gain.setValueAtTime(0.1, now + idx * 0.08);
       gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
