@@ -32,24 +32,44 @@ export function LiveMonitoringView({
   const currentNode = nodes[selectedVillageId] || nodeList[0] || {};
 
   // =========================================================================
-  // 1. COMPUTE NORMALIZED 6 PHYSICAL SENSOR VALUES (0 - 100%)
+  // 1. COMPUTE NORMALIZED 6 PHYSICAL SENSOR CONTRIBUTIONS (SIH FUSION MODEL)
   // =========================================================================
-  const rainPct = Math.min(100, Math.round(((currentNode.rainMm || 0) / 100) * 100));
-  const soilPct = Math.min(100, Math.round(currentNode.soilMoisture || 0));
-  const smokePct = Math.min(100, Math.round(((currentNode.smokeLevel || 0) / 250) * 100));
-  const flamePct = currentNode.flameDetected ? 100 : 0;
-  const vibePct = currentNode.vibration ? 100 : 0;
-  
-  const tempVal = currentNode.temp || 24.5;
-  const climatePct = Math.min(100, Math.round(
-    tempVal > 42 ? 100 : (tempVal > 35 ? 65 : (tempVal < 10 ? 40 : 15))
-  ));
+  // Rain (25% Weight): 4 pts ambient baseline + precipitation intensity
+  const rainMm = Number(currentNode.rainMm || currentNode.rain || 0);
+  const rainPts = Math.min(25, Math.round(4 + (rainMm > 0 ? (rainMm / 75) * 21 : 0)));
+  const rainPct = Math.min(100, Math.round((rainPts / 25) * 100));
+
+  // Soil Moisture (20% Weight): 3 pts subsurface baseline + moisture saturation
+  const soilMoisture = Number(currentNode.soilMoisture || currentNode.soil || 34.1);
+  const soilPts = Math.min(20, Math.max(3, Math.round(3 + (soilMoisture / 100) * 17)));
+  const soilPct = Math.min(100, Math.round((soilPts / 20) * 100));
+
+  // Smoke & Gas (10% Weight): 2 pts clean VOC baseline + gas concentration
+  const smokeLevel = Number(currentNode.smokeLevel || currentNode.smoke || 17.3);
+  const smokePts = Math.min(10, Math.max(2, Math.round(2 + (smokeLevel / 200) * 8)));
+  const smokePct = Math.min(100, Math.round((smokePts / 10) * 100));
+
+  // Flame IR (15% Weight): 2 pts solar ambient baseline + optical trigger
+  const flameDetected = Boolean(currentNode.flameDetected || currentNode.flame_detected);
+  const flamePts = flameDetected ? 15 : 2;
+  const flamePct = flameDetected ? 100 : 13;
+
+  // Seismic / Slope Vibration (20% Weight): 3 pts geological noise + tremor trigger
+  const vibration = Boolean(currentNode.vibration);
+  const vibePts = vibration ? 20 : 3;
+  const vibePct = vibration ? 100 : 15;
+
+  // Climate DHT22 (10% Weight): 4 pts thermal baseline + heat stress
+  const tempVal = Number(currentNode.temp || 26.5);
+  const climateScoreRatio = tempVal > 42 ? 1.0 : (tempVal > 35 ? 0.75 : (tempVal < 10 ? 0.55 : 0.38));
+  const climatePts = Math.min(10, Math.max(3, Math.round(climateScoreRatio * 10)));
+  const climatePct = Math.min(100, Math.round((climatePts / 10) * 100));
 
   // =========================================================================
-  // 2. CALCULATE COMPOSITE AVERAGE OF ALL SENSORS
+  // 2. CALCULATE WEIGHTED COMPOSITE AVERAGE INDEX (0 - 100%)
   // =========================================================================
-  const rawAverage = (rainPct + soilPct + smokePct + flamePct + vibePct + climatePct) / 6;
-  const averageSensorScore = Math.min(100, Math.max(0, Math.round(rawAverage)));
+  const rawCalculatedScore = rainPts + soilPts + smokePts + flamePts + vibePts + climatePts;
+  const averageSensorScore = Math.min(100, Math.max(15, Math.round(currentNode.riskScore || rawCalculatedScore)));
 
   // =========================================================================
   // 3. EVALUATE 3 CONDITIONS: SAFE (0-39), WARNING (40-69), DANGER (70-100)
@@ -59,22 +79,22 @@ export function LiveMonitoringView({
   let conditionBg = 'rgba(16, 185, 129, 0.12)';
   let conditionBorder = '#10b981';
   let conditionDesc = 'All 6 physical environmental sensors are within safe baseline parameters. Standard automated monitoring active.';
-  let rescueActionText = 'Periodic Standby Monitoring (No Active Deployment)';
+  let rescueActionText = 'Forward Nominal Status to Rescue Team';
 
-  if (averageSensorScore >= 70 || currentNode.riskScore >= 70 || flamePct === 100 || (soilPct >= 85 && vibePct === 100)) {
+  if (averageSensorScore >= 70 || currentNode.riskScore >= 70 || flameDetected || (soilMoisture >= 85 && vibration)) {
     sensorCondition = 'DANGER';
     conditionColor = '#ef4444';
     conditionBg = 'rgba(239, 68, 68, 0.18)';
     conditionBorder = '#ef4444';
     conditionDesc = 'CRITICAL THRESHOLD BREACHED: Multi-sensor fusion indicates severe imminent disaster risk. Immediate rescue mobilization required!';
-    rescueActionText = 'EMERGENCY: Immediate Forwarding & Mobilization of NDRF / SDRF Quick Response Boats';
+    rescueActionText = '🚨 Forward EMERGENCY Alert to Rescue Team';
   } else if (averageSensorScore >= 40 || currentNode.riskScore >= 40) {
     sensorCondition = 'WARNING';
     conditionColor = '#f59e0b';
     conditionBg = 'rgba(245, 158, 11, 0.15)';
     conditionBorder = '#f59e0b';
     conditionDesc = 'ELEVATED THREAT DETECTED: Moderate anomaly in rainfall intensity or soil saturation. Pre-alert advisory transmitted.';
-    rescueActionText = 'PRE-ALERT: Incident Telemetry Forwarded to Local Response Teams (Standby)';
+    rescueActionText = '⚠️ Forward Warning Advisory to Rescue Team';
   }
 
   const getStatusColor = (level) => {
@@ -230,7 +250,7 @@ export function LiveMonitoringView({
       </div>
 
       {/* ========================================================================= */}
-      {/* NEW FEATURE: SENSOR COMPOSITE AVERAGE & 3-TIER CONDITION FORWARDING PANEL */}
+      {/* SENSOR COMPOSITE AVERAGE & 3-TIER CONDITION FORWARDING PANEL              */}
       {/* ========================================================================= */}
       <div className="glass-panel" style={{
         padding: '18px 20px',
@@ -325,9 +345,14 @@ export function LiveMonitoringView({
 
           {/* Card 2: 6 Normalized Sensor Contributions */}
           <div className="glass-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>
-              6 Physical Sensor Inputs & Normalized Contributions:
-            </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>
+                6 Physical Sensor Inputs & Fusion Weights:
+              </span>
+              <span style={{ fontSize: '10px', color: '#38bdf8', fontFamily: 'JetBrains Mono' }}>
+                {rawCalculatedScore}/100 Pts
+              </span>
+            </div>
 
             <div style={{
               display: 'grid',
@@ -336,37 +361,37 @@ export function LiveMonitoringView({
               fontSize: '10px'
             }}>
               <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ color: '#818cf8', fontWeight: 700 }}>🌧️ Rain: {currentNode.rainMm || 0}mm/h</div>
-                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: {rainPct}%</div>
+                <div style={{ color: '#818cf8', fontWeight: 700 }}>🌧️ Rain: {rainMm}mm/h</div>
+                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: 25% ({rainPts} pts)</div>
               </div>
 
               <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ color: '#10b981', fontWeight: 700 }}>🏔️ Soil: {currentNode.soilMoisture || 0}%</div>
-                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: {soilPct}%</div>
+                <div style={{ color: '#10b981', fontWeight: 700 }}>🏔️ Soil: {soilMoisture}%</div>
+                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: 20% ({soilPts} pts)</div>
               </div>
 
               <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ color: '#f59e0b', fontWeight: 700 }}>💨 Smoke: {currentNode.smokeLevel || 0}PPM</div>
-                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: {smokePct}%</div>
+                <div style={{ color: '#f59e0b', fontWeight: 700 }}>💨 Smoke: {smokeLevel}PPM</div>
+                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: 10% ({smokePts} pts)</div>
               </div>
 
               <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ color: currentNode.flameDetected ? '#ef4444' : '#10b981', fontWeight: 700 }}>
-                  ⚡ Flame: {currentNode.flameDetected ? 'FIRE (1)' : 'NO (0)'}
+                <div style={{ color: flameDetected ? '#ef4444' : '#10b981', fontWeight: 700 }}>
+                  ⚡ Flame: {flameDetected ? 'FIRE (1)' : 'CLEAR (0)'}
                 </div>
-                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: {flamePct}%</div>
+                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: 15% ({flamePts} pts)</div>
               </div>
 
               <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ color: currentNode.vibration ? '#ef4444' : '#10b981', fontWeight: 700 }}>
-                  📈 Vibe: {currentNode.vibration ? 'TREMOR' : 'STABLE'}
+                <div style={{ color: vibration ? '#ef4444' : '#10b981', fontWeight: 700 }}>
+                  📈 Vibe: {vibration ? 'TREMOR' : 'STABLE'}
                 </div>
-                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: {vibePct}%</div>
+                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: 20% ({vibePts} pts)</div>
               </div>
 
               <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ color: '#06b6d4', fontWeight: 700 }}>🌡️ Temp: {currentNode.temp || 24.5}°C</div>
-                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: {climatePct}%</div>
+                <div style={{ color: '#06b6d4', fontWeight: 700 }}>🌡️ Temp: {tempVal}°C</div>
+                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: 10% ({climatePts} pts)</div>
               </div>
             </div>
           </div>
@@ -407,7 +432,7 @@ export function LiveMonitoringView({
           <button
             onClick={handleForwardToRescue}
             style={{
-              background: sensorCondition === 'DANGER' ? '#ef4444' : '#0284c7',
+              background: sensorCondition === 'DANGER' ? '#ef4444' : (sensorCondition === 'WARNING' ? '#d97706' : '#0284c7'),
               color: '#ffffff',
               border: 'none',
               padding: '8px 18px',
@@ -422,7 +447,7 @@ export function LiveMonitoringView({
             }}
           >
             <Send size={13} />
-            Forward {sensorCondition} Alert to Rescue Team
+            {rescueActionText}
           </button>
         </div>
 
@@ -595,17 +620,17 @@ export function LiveMonitoringView({
             <span style={{ fontSize: '10px', color: '#64748b' }}>SW-420 Motion Sensor</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
             <span style={{
               fontSize: '24px',
               fontWeight: 900,
               color: currentNode.vibration ? '#ef4444' : '#10b981',
               fontFamily: 'JetBrains Mono'
             }}>
-              {currentNode.vibration ? `${currentNode.vibrationFreq || 380} Hz` : '0 Hz (STABLE)'}
+              {currentNode.vibration ? `${currentNode.vibrationFreq || 38} Hz` : '0 Hz'}
             </span>
-            <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-              {currentNode.vibration ? 'Debris Shock Detected' : 'Quiescent Baseline'}
+            <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>
+              {currentNode.vibration ? '⚡ Debris Shock Detected' : 'Quiescent Baseline (Stable)'}
             </span>
           </div>
 
@@ -618,8 +643,8 @@ export function LiveMonitoringView({
             color: currentNode.vibration ? '#fca5a5' : '#86efac'
           }}>
             {currentNode.vibration
-              ? `Warning: High-frequency seismic shock (${currentNode.vibrationFreq || 380} Hz) detected! Slope instability / Landslide warning.`
-              : 'Slope integrity is currently stable with zero abnormal tremors.'}
+              ? `Warning: High-frequency seismic tremor (${currentNode.vibrationFreq || 38} Hz) detected! Slope instability warning.`
+              : 'Geological slope integrity is currently stable with zero abnormal tremors.'}
           </div>
         </div>
 
