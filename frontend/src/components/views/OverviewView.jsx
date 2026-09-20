@@ -16,6 +16,7 @@ import {
   Thermometer
 } from 'lucide-react';
 import { SensorCharts } from '../SensorCharts';
+import { PreDisasterImpactMap } from '../PreDisasterImpactMap';
 
 export function OverviewView({
   nodes = {},
@@ -23,8 +24,10 @@ export function OverviewView({
   alerts = [],
   gatewayStatus = 'ONLINE',
   lastDataTimestamp,
-  onSelectNode: _onSelectNode,
-  onOpenDispatch: _onOpenDispatch
+  activeScenario = 'normal',
+  onSelectNode,
+  onOpenDispatch,
+  onTriggerSiren
 }) {
   const nodeList = Object.values(nodes);
   const activeNodesCount = nodeList.filter(n => n.status === 'ONLINE').length;
@@ -592,6 +595,18 @@ export function OverviewView({
       {/* SECTION D: REAL-TIME TREND CHARTS                                         */}
       {/* ========================================================================= */}
       <SensorCharts history={history} />
+
+      {/* ========================================================================= */}
+      {/* SECTION E: PRE-DISASTER IMPACT AREA & DOWNSTREAM INUNDATION GIS MAP       */}
+      {/* ========================================================================= */}
+      <PreDisasterImpactMap
+        nodes={nodes}
+        alerts={alerts}
+        activeScenario={activeScenario}
+        onSelectNode={onSelectNode}
+        onOpenDispatch={onOpenDispatch}
+        onTriggerSiren={onTriggerSiren}
+      />
     </div>
   );
 }

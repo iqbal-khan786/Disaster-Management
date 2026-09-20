@@ -14,24 +14,31 @@ import {
 // Tile Provider Configurations (100% Free, Zero API Key Required, Zero Watermark)
 const TILE_LAYERS = {
   satellite: {
-    name: 'Real HD Satellite',
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attribution: 'Esri World Imagery (High-Res Real Satellite)',
-    maxZoom: 19,
-    hasOverlay: true
+    name: 'Google Satellite (Hybrid)',
+    url: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    attribution: 'Map data &copy;2026 Google Imagery',
+    maxZoom: 20,
+    hasOverlay: false
+  },
+  roadmap: {
+    name: 'Google Maps (Roads)',
+    url: 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+    attribution: 'Map data &copy;2026 Google',
+    maxZoom: 20,
+    hasOverlay: false
+  },
+  topo: {
+    name: 'Google Terrain',
+    url: 'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+    attribution: 'Map data &copy;2026 Google Terrain',
+    maxZoom: 20,
+    hasOverlay: false
   },
   osm: {
     name: 'OpenStreetMap',
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '&copy; OpenStreetMap contributors',
     maxZoom: 19,
-    hasOverlay: false
-  },
-  topo: {
-    name: 'Topo Elevation & Contours',
-    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-    attribution: 'OpenTopoMap (Topographic Mountain Contours)',
-    maxZoom: 17,
     hasOverlay: false
   }
 };
@@ -862,40 +869,6 @@ export function DisasterMap({ nodes, dispatches: _dispatches = [], language = 'e
           <div style={{ width: '40px', height: '2px', background: 'var(--accent)', margin: '2px 0' }} />
           <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
             SCALE: ~1:50,000
-          </div>
-        </div>
-
-        {/* Bottom-Left Live Telemetry & Elevation HUD Pill */}
-        <div style={{
-          position: 'absolute',
-          bottom: '12px',
-          left: '12px',
-          background: 'rgba(11, 17, 33, 0.9)',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          borderRadius: '6px',
-          padding: '6px 12px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          zIndex: 600,
-          boxShadow: '0 4px 15px rgba(0,0,0,0.7)',
-          fontFamily: 'JetBrains Mono',
-          fontSize: '11px',
-          pointerEvents: 'none'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--accent)' }}>
-            <Crosshair size={12} />
-            <span>{cursorCoords.lat.toFixed(4)}°N, {cursorCoords.lng.toFixed(4)}°E</span>
-          </div>
-          <span style={{ color: 'var(--text-dim)' }}>|</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--normal)' }}>
-            <Mountain size={12} />
-            <span>ELEV: {cursorCoords.elev}m MSL</span>
-          </div>
-          <span style={{ color: 'var(--text-dim)' }}>|</span>
-          <div style={{ color: '#fbbf24' }}>
-            RF FREQ: 433.0 MHz
           </div>
         </div>
       </div>

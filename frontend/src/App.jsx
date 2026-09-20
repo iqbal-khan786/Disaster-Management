@@ -93,8 +93,10 @@ export default function App() {
               alerts={alerts}
               gatewayStatus={gatewayStatus}
               lastDataTimestamp={lastDataTimestamp}
+              activeScenario={activeScenario}
               onSelectNode={setSelectedDetailNode}
               onOpenDispatch={handleOpenDispatch}
+              onTriggerSiren={triggerSiren}
             />
           )}
 

@@ -593,22 +593,22 @@ body {
 
 .main-content .risk-level-label.risk-low,
 .main-content .risk-level-label.risk-normal {
-  color: #238447 !important;
+  color: #34d399 !important;
 }
 
 .main-content .risk-level-label.risk-medium,
 .main-content .risk-level-label.risk-warning {
-  color: #b7791f !important;
+  color: #fbbf24 !important;
 }
 
 .main-content .risk-level-label.risk-high,
 .main-content .risk-level-label.risk-critical,
 .main-content .risk-level-label.risk-emergency {
-  color: #c73737 !important;
+  color: #f87171 !important;
 }
 
 .history-search::placeholder {
-  color: #607587 !important;
+  color: #94a3b8 !important;
   opacity: 1;
 }
 
@@ -619,32 +619,63 @@ body {
 }
 
 .dispatch-modal {
-  background: #ffffff !important;
-  border: 1px solid #c8d5de !important;
-  box-shadow: 0 18px 45px rgba(31, 62, 86, 0.2) !important;
+  background: #0f172a !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6) !important;
+  color: #f8fafc !important;
 }
 
 .dispatch-modal h3 {
-  color: #1f2933 !important;
+  color: #f8fafc !important;
 }
 
 .dispatch-modal p,
 .dispatch-modal label,
 .dispatch-modal > div > div > div > span:first-child {
-  color: #607587 !important;
+  color: #cbd5e1 !important;
 }
 
 .dispatch-modal > div:nth-child(2) {
-  background: #f4f7f9 !important;
-  border-color: #d5dfe7 !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Status words stay as colored text; remove pill treatment from all inline labels. */
-.main-content span[style*="border-radius"],
-.main-content span[style*="borderRadius"] {
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
+/* Tactical Map & Pre-Disaster Prediction Overlays */
+@keyframes sonarCascade {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
 }
+
+.sonar-cascade {
+  animation: sonarCascade 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.3; }
+}
+
+.pulse-circle {
+  animation: pulseGlow 1.5s ease-in-out infinite;
+}
+
+.river-corridor-path {
+  stroke-dasharray: 8, 8;
+  animation: riverFlow 20s linear infinite;
+}
+
+@keyframes riverFlow {
+  from {
+    stroke-dashoffset: 200;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
