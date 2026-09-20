@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   LayoutDashboard,
   Activity,
+  TrendingUp,
   MapPin,
   Flame,
   AlertTriangle,
@@ -20,6 +21,7 @@ export function Sidebar({ activeTab, onSelectTab, activeAlertCount = 0 }) {
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard, badge: null },
     { id: 'monitoring', label: 'Live Monitoring', icon: Activity, badge: 'LIVE' },
+    { id: 'graphs', label: 'Graph Details', icon: TrendingUp, badge: 'ANALYTICS' },
     { id: 'risk', label: 'Risk Analysis', icon: Flame, badge: 'AI' },
     { id: 'alerts', label: 'Disaster Alerts', icon: AlertTriangle, badge: activeAlertCount > 0 ? activeAlertCount : null, isAlert: activeAlertCount > 0 },
     { id: 'nodes', label: 'Sensor Nodes', icon: Cpu, badge: null },

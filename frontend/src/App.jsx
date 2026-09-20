@@ -10,6 +10,7 @@ import { AlertsCenterView } from './components/views/AlertsCenterView';
 import { SensorNodesView } from './components/views/SensorNodesView';
 import { HistoricalDataView } from './components/views/HistoricalDataView';
 import { RescueOperationsView } from './components/views/RescueOperationsView';
+import { GraphDetailsView } from './components/views/GraphDetailsView';
 import { SystemSettingsView } from './components/views/SystemSettingsView';
 
 import { VillageDetailModal } from './components/VillageDetailModal';
@@ -106,6 +107,13 @@ export default function App() {
               onSelectNode={setSelectedDetailNode}
               onOpenDispatch={handleOpenDispatch}
               onTriggerSiren={triggerSiren}
+            />
+          )}
+
+          {activeTab === 'graphs' && (
+            <GraphDetailsView
+              history={history}
+              nodes={nodes}
             />
           )}
 
