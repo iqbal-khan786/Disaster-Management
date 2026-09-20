@@ -150,7 +150,7 @@ export function SystemSettingsView({
               }}
             >
               <Usb size={15} />
-              <span>{isSerialConnected ? 'Disconnect ESP32 Serial' : '🔌 Select & Connect ESP32 (COM4)'}</span>
+              <span>{isSerialConnected ? 'Disconnect ESP32 Serial' : 'Select & Connect ESP32 (COM4)'}</span>
             </button>
           </div>
 

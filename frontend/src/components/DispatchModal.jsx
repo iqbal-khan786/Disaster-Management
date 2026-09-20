@@ -22,14 +22,14 @@ export function DispatchModal({ node, isOpen, onClose, onConfirm }) {
 
   return (
     <div className="modal-overlay">
-      <div style={{
-        background: '#0d1629',
-        border: '1px solid #ef4444',
-        borderRadius: '12px',
+      <div className="dispatch-modal" style={{
+        background: '#ffffff',
+        border: '1px solid #c8d5de',
+        borderRadius: '14px',
         width: '480px',
         maxWidth: '95vw',
         padding: '24px',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.8), 0 0 25px rgba(239, 68, 68, 0.4)',
+        boxShadow: '0 18px 45px rgba(31, 62, 86, 0.2)',
         display: 'flex',
         flexDirection: 'column',
         gap: '16px'
@@ -38,19 +38,19 @@ export function DispatchModal({ node, isOpen, onClose, onConfirm }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
-              background: 'rgba(239, 68, 68, 0.2)',
-              border: '1px solid #ef4444',
+              background: '#fce8e8',
+              border: '1px solid #d88989',
               borderRadius: '8px',
               padding: '8px',
-              color: '#ef4444'
+              color: '#a63d3d'
             }}>
               <ShieldAlert size={24} />
             </div>
             <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#1f2933', margin: 0 }}>
                 Mobilize Rescue Dispatch Order
               </h3>
-              <p style={{ fontSize: '11px', color: '#94a3b8', margin: '2px 0 0' }}>
+              <p style={{ fontSize: '11px', color: '#607587', margin: '2px 0 0' }}>
                 Target Sector: {node.name || `Village ${node.id}`}
               </p>
             </div>
@@ -60,7 +60,7 @@ export function DispatchModal({ node, isOpen, onClose, onConfirm }) {
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#94a3b8',
+              color: '#607587',
               cursor: 'pointer'
             }}
           >
@@ -70,8 +70,8 @@ export function DispatchModal({ node, isOpen, onClose, onConfirm }) {
 
         {/* Telemetry Snapshot */}
         <div style={{
-          background: 'rgba(0,0,0,0.4)',
-          border: '1px solid rgba(255,255,255,0.08)',
+          background: '#f4f7f9',
+          border: '1px solid #d5dfe7',
           borderRadius: '8px',
           padding: '12px',
           display: 'flex',
@@ -80,20 +80,20 @@ export function DispatchModal({ node, isOpen, onClose, onConfirm }) {
           fontSize: '11px'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#94a3b8' }}>Live GPS Coordinates:</span>
-            <span style={{ fontFamily: 'JetBrains Mono', fontWeight: 700, color: '#38bdf8' }}>
+            <span style={{ color: '#607587' }}>Live GPS Coordinates:</span>
+            <span style={{ fontFamily: 'JetBrains Mono', fontWeight: 700, color: '#2e6f95' }}>
               {lat}°N, {lng}°E
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#94a3b8' }}>Threat Classification:</span>
-            <span style={{ fontWeight: 800, color: '#ef4444' }}>
+            <span style={{ color: '#607587' }}>Threat Classification:</span>
+            <span style={{ fontWeight: 800, color: '#b33b3b' }}>
               {node.disasterType || 'FLASH FLOOD'} (Threat Score: {Math.round(node.riskScore || 0)}/100)
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#94a3b8' }}>Rain / Soil Saturation:</span>
-            <span style={{ color: '#f8fafc', fontWeight: 700 }}>
+            <span style={{ color: '#607587' }}>Rain / Soil Saturation:</span>
+            <span style={{ color: '#1f2933', fontWeight: 700 }}>
               Rain: {rain} | Soil: {soil}
             </span>
           </div>
@@ -101,7 +101,7 @@ export function DispatchModal({ node, isOpen, onClose, onConfirm }) {
 
         {/* Deployment Options */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>
+          <label style={{ fontSize: '11px', fontWeight: 700, color: '#607587' }}>
             SELECT RESCUE ASSETS TO MOBILIZE:
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -109,11 +109,11 @@ export function DispatchModal({ node, isOpen, onClose, onConfirm }) {
               onClick={() => setUnitType('ODRAF_BOATS')}
               className="action-btn"
               style={{
-                background: unitType === 'ODRAF_BOATS' ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${unitType === 'ODRAF_BOATS' ? '#38bdf8' : 'rgba(255,255,255,0.1)'}`,
+                background: unitType === 'ODRAF_BOATS' ? '#dcecf4' : '#f2f4f6',
+                border: `1px solid ${unitType === 'ODRAF_BOATS' ? '#2e6f95' : '#ccd6de'}`,
                 borderRadius: '8px',
                 padding: '10px',
-                color: unitType === 'ODRAF_BOATS' ? '#38bdf8' : '#94a3b8',
+                color: unitType === 'ODRAF_BOATS' ? '#2e6f95' : '#607587',
                 fontWeight: 700,
                 fontSize: '11px',
                 cursor: 'pointer',
@@ -131,11 +131,11 @@ export function DispatchModal({ node, isOpen, onClose, onConfirm }) {
               onClick={() => setUnitType('NDRF_ALL_TERRAIN')}
               className="action-btn"
               style={{
-                background: unitType === 'NDRF_ALL_TERRAIN' ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${unitType === 'NDRF_ALL_TERRAIN' ? '#38bdf8' : 'rgba(255,255,255,0.1)'}`,
+                background: unitType === 'NDRF_ALL_TERRAIN' ? '#dcecf4' : '#f2f4f6',
+                border: `1px solid ${unitType === 'NDRF_ALL_TERRAIN' ? '#2e6f95' : '#ccd6de'}`,
                 borderRadius: '8px',
                 padding: '10px',
-                color: unitType === 'NDRF_ALL_TERRAIN' ? '#38bdf8' : '#94a3b8',
+                color: unitType === 'NDRF_ALL_TERRAIN' ? '#2e6f95' : '#607587',
                 fontWeight: 700,
                 fontSize: '11px',
                 cursor: 'pointer',
@@ -158,9 +158,9 @@ export function DispatchModal({ node, isOpen, onClose, onConfirm }) {
             className="action-btn"
             style={{
               flex: 1,
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: 'none',
-              color: '#94a3b8',
+              background: '#e8edf1',
+              border: '1px solid #d0dbe2',
+              color: '#52697a',
               padding: '10px',
               borderRadius: '6px',
               fontWeight: 700,
@@ -176,8 +176,8 @@ export function DispatchModal({ node, isOpen, onClose, onConfirm }) {
             className="action-btn"
             style={{
               flex: 2,
-              background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
-              border: 'none',
+              background: '#a63d3d',
+              border: '1px solid #8f2d2d',
               color: '#fff',
               padding: '10px',
               borderRadius: '6px',
@@ -188,7 +188,7 @@ export function DispatchModal({ node, isOpen, onClose, onConfirm }) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px',
-              boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)'
+              boxShadow: 'none'
             }}
           >
             <Send size={14} />

@@ -68,15 +68,14 @@ export function LiveMonitoringView({
                     gap: '6px',
                     padding: '6px 12px',
                     borderRadius: '6px',
-                    border: isSelected ? `1px solid ${color}` : '1px solid rgba(255, 255, 255, 0.1)',
-                    background: isSelected ? `rgba(${color === '#ef4444' ? '239, 68, 68' : '56, 189, 248'}, 0.2)` : 'rgba(255, 255, 255, 0.03)',
-                    color: isSelected ? '#f8fafc' : '#cbd5e1',
+                    border: isSelected ? '1px solid #244b6b' : '1px solid #c8d3da',
+                    background: isSelected ? '#244b6b' : '#eef2f4',
+                    color: isSelected ? '#ffffff' : '#1f2933',
                     fontSize: '11px',
                     fontWeight: 700,
                     cursor: 'pointer'
                   }}
                 >
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: color }} className={node.riskLevel === 'CRITICAL' ? 'pulse-circle' : ''} />
                   <span>{node.name.split(':')[0]}</span>
                 </button>
               );
@@ -113,7 +112,7 @@ export function LiveMonitoringView({
                 alignItems: 'center',
                 gap: '4px'
               }}>
-                ⚡ LIVE ESP32 HARDWARE NODE
+                LIVE ESP32 HARDWARE NODE
               </span>
             ) : null}
             <span style={{
@@ -146,9 +145,9 @@ export function LiveMonitoringView({
               gap: '6px',
               padding: '8px 14px',
               borderRadius: '6px',
-              border: '1px solid #ef4444',
-              background: 'rgba(239, 68, 68, 0.2)',
-              color: '#fca5a5',
+              border: '1px solid #8f2d2d',
+              background: '#a63d3d',
+              color: '#ffffff',
               fontSize: '11px',
               fontWeight: 800,
               cursor: 'pointer'
@@ -276,7 +275,7 @@ export function LiveMonitoringView({
               color: currentNode.flameDetected ? '#ef4444' : '#10b981',
               fontFamily: 'JetBrains Mono'
             }}>
-              {currentNode.flameDetected ? '🔥 FLAME DETECTED' : 'CLEAR (SAFE)'}
+              {currentNode.flameDetected ? 'FLAME DETECTED' : 'CLEAR (SAFE)'}
             </span>
           </div>
 
@@ -314,7 +313,7 @@ export function LiveMonitoringView({
               {currentNode.vibration ? `${currentNode.vibrationFreq || 380} Hz` : '0 Hz (STABLE)'}
             </span>
             <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-              {currentNode.vibration ? '🚨 Debris Shock Detected' : 'Quiescent Baseline'}
+              {currentNode.vibration ? 'Debris Shock Detected' : 'Quiescent Baseline'}
             </span>
           </div>
 

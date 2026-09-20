@@ -159,7 +159,7 @@ export function DisasterLifecycleDetails({ currentPhase, nodes, onOpenDispatch }
 
           <div className="glass-panel" style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase' }}>
-              📡 2-Hop LoRa SX1278 Mesh Route (433MHz)
+              2-Hop LoRa SX1278 Mesh Route (433MHz)
             </div>
 
             <div style={{
@@ -172,7 +172,7 @@ export function DisasterLifecycleDetails({ currentPhase, nodes, onOpenDispatch }
               <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', borderRadius: '6px', padding: '12px' }}>
                 <div style={{ fontSize: '9px', color: '#fca5a5', fontWeight: 800 }}>DISASTER ZONE</div>
                 <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff' }}>Node 1: Kolnara</div>
-                <div style={{ fontSize: '10px', color: '#f87171' }}>🚨 Siren: ON (95dB)</div>
+                <div style={{ fontSize: '10px', color: '#f87171' }}>Siren: ON (95dB)</div>
               </div>
 
               <div style={{ color: '#38bdf8', fontSize: '10px', fontWeight: 700 }}>

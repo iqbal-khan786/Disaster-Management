@@ -112,16 +112,16 @@ export function HistoricalDataView({ history = [], nodes = {} }) {
               gap: '6px',
               padding: '7px 14px',
               borderRadius: '6px',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
-              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(185, 28, 28, 0.35))',
-              color: '#fca5a5',
+              border: '1px solid #94302f',
+              background: '#b33b3b',
+              color: '#ffffff',
               fontSize: '11px',
               fontWeight: 800,
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(239, 68, 68, 0.2)'
+              boxShadow: 'none'
             }}
           >
-            <FileDown size={14} color="#ef4444" />
+            <FileDown size={14} color="#ffffff" />
             <span>Export Official PDF Report</span>
           </button>
 
@@ -134,9 +134,9 @@ export function HistoricalDataView({ history = [], nodes = {} }) {
               gap: '6px',
               padding: '6px 12px',
               borderRadius: '6px',
-              border: '1px solid rgba(56, 189, 248, 0.3)',
-              background: 'rgba(56, 189, 248, 0.15)',
-              color: '#38bdf8',
+              border: '1px solid #245a79',
+              background: '#2e6f95',
+              color: '#ffffff',
               fontSize: '11px',
               fontWeight: 700,
               cursor: 'pointer'
@@ -155,9 +155,9 @@ export function HistoricalDataView({ history = [], nodes = {} }) {
               gap: '6px',
               padding: '6px 12px',
               borderRadius: '6px',
-              border: '1px solid rgba(168, 85, 247, 0.3)',
-              background: 'rgba(168, 85, 247, 0.15)',
-              color: '#c084fc',
+              border: '1px solid #5c3e86',
+              background: '#70509a',
+              color: '#ffffff',
               fontSize: '11px',
               fontWeight: 700,
               cursor: 'pointer'
@@ -214,15 +214,16 @@ export function HistoricalDataView({ history = [], nodes = {} }) {
           <Search size={14} color="#64748b" />
           <input
             type="text"
+            className="history-search"
             placeholder="Search village or node..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#ffffff',
+              border: '1px solid #c7d4de',
               borderRadius: '6px',
               padding: '6px 10px',
-              color: '#f8fafc',
+              color: '#1f2933',
               fontSize: '11px',
               outline: 'none',
               width: '180px'
@@ -232,12 +233,13 @@ export function HistoricalDataView({ history = [], nodes = {} }) {
           <select
             value={selectedVillageFilter}
             onChange={(e) => setSelectedVillageFilter(e.target.value)}
+            className="history-village-filter"
             style={{
-              background: 'rgba(15, 23, 42, 0.9)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#1f2b40',
+              border: '1px solid #71869a',
               borderRadius: '6px',
               padding: '6px 10px',
-              color: '#cbd5e1',
+              color: '#ffffff',
               fontSize: '11px',
               outline: 'none'
             }}

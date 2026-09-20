@@ -141,7 +141,7 @@ export function SensorCharts({ history = [] }) {
       legend: {
         position: 'top',
         labels: {
-          color: '#94a3b8',
+          color: '#5d7488',
           font: { size: 10, family: 'Outfit' },
           boxWidth: 10,
           usePointStyle: true
@@ -159,8 +159,9 @@ export function SensorCharts({ history = [] }) {
     },
     scales: {
       x: {
-        grid: { color: 'rgba(255, 255, 255, 0.04)' },
-        ticks: { color: '#64748b', font: { size: 9, family: 'JetBrains Mono' }, maxRotation: 0 }
+        grid: { color: '#d8e3eb', lineWidth: 1, drawOnChartArea: true },
+        border: { color: '#52697a', width: 1.5 },
+        ticks: { color: '#71869a', font: { size: 9, family: 'JetBrains Mono' }, maxRotation: 0 }
       }
     }
   };
@@ -172,7 +173,8 @@ export function SensorCharts({ history = [] }) {
       yRain: {
         type: 'linear',
         position: 'left',
-        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+        grid: { color: '#d8e3eb', lineWidth: 1, drawOnChartArea: true },
+        border: { color: '#b9cad8', width: 1 },
         ticks: { color: '#818cf8', font: { size: 9, family: 'JetBrains Mono' } },
         title: { display: true, text: 'Rain (mm/h)', color: '#818cf8', font: { size: 9 } }
       },
@@ -182,6 +184,7 @@ export function SensorCharts({ history = [] }) {
         min: 0,
         max: 100,
         grid: { drawOnChartArea: false },
+        border: { color: '#b9cad8', width: 1 },
         ticks: { color: '#10b981', font: { size: 9, family: 'JetBrains Mono' } },
         title: { display: true, text: 'Soil Moisture (%)', color: '#10b981', font: { size: 9 } }
       }
@@ -196,7 +199,8 @@ export function SensorCharts({ history = [] }) {
         type: 'linear',
         position: 'left',
         min: 0,
-        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+        grid: { color: '#d8e3eb', lineWidth: 1, drawOnChartArea: true },
+        border: { color: '#b9cad8', width: 1 },
         ticks: { color: '#f59e0b', font: { size: 9, family: 'JetBrains Mono' } },
         title: { display: true, text: 'Smoke (PPM)', color: '#f59e0b', font: { size: 9 } }
       },
@@ -206,6 +210,7 @@ export function SensorCharts({ history = [] }) {
         min: 0,
         max: 1.5,
         grid: { drawOnChartArea: false },
+        border: { color: '#b9cad8', width: 1 },
         ticks: { color: '#ef4444', stepSize: 1, font: { size: 9, family: 'JetBrains Mono' } },
         title: { display: true, text: 'Vibration Status (1/0)', color: '#ef4444', font: { size: 9 } }
       }
@@ -219,7 +224,8 @@ export function SensorCharts({ history = [] }) {
       yTemp: {
         type: 'linear',
         position: 'left',
-        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+        grid: { color: '#d8e3eb', lineWidth: 1, drawOnChartArea: true },
+        border: { color: '#b9cad8', width: 1 },
         ticks: { color: '#f43f5e', font: { size: 9, family: 'JetBrains Mono' } },
         title: { display: true, text: 'Temp (°C)', color: '#f43f5e', font: { size: 9 } }
       },
@@ -229,6 +235,7 @@ export function SensorCharts({ history = [] }) {
         min: 0,
         max: 100,
         grid: { drawOnChartArea: false },
+        border: { color: '#b9cad8', width: 1 },
         ticks: { color: '#06b6d4', font: { size: 9, family: 'JetBrains Mono' } },
         title: { display: true, text: 'Humidity (%)', color: '#06b6d4', font: { size: 9 } }
       }
@@ -244,7 +251,8 @@ export function SensorCharts({ history = [] }) {
         position: 'left',
         min: 0,
         max: 100,
-        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+        grid: { color: '#d8e3eb', lineWidth: 1, drawOnChartArea: true },
+        border: { color: '#b9cad8', width: 1 },
         ticks: { color: '#ef4444', font: { size: 9, family: 'JetBrains Mono' } },
         title: { display: true, text: 'Risk Score (0-100)', color: '#ef4444', font: { size: 9 } }
       },
@@ -254,6 +262,7 @@ export function SensorCharts({ history = [] }) {
         min: -120,
         max: -30,
         grid: { drawOnChartArea: false },
+        border: { color: '#b9cad8', width: 1 },
         ticks: { color: '#a855f7', font: { size: 9, family: 'JetBrains Mono' } },
         title: { display: true, text: 'LoRa RSSI (dBm)', color: '#a855f7', font: { size: 9 } }
       }

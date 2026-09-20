@@ -28,7 +28,7 @@ export function Sidebar({ activeTab, onSelectTab, activeAlertCount = 0 }) {
   ];
 
   return (
-    <aside style={{
+    <aside className="app-sidebar" style={{
       width: collapsed ? '68px' : '230px',
       background: 'rgba(8, 14, 28, 0.98)',
       borderRight: '1px solid rgba(56, 189, 248, 0.18)',
