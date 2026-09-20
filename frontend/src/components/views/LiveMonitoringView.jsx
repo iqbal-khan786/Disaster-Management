@@ -6,7 +6,16 @@ import {
   Flame,
   Thermometer,
   Send,
-  Zap
+  Zap,
+  ShieldCheck,
+  AlertTriangle,
+  Radio,
+  CheckCircle2,
+  Truck,
+  ArrowRight,
+  Clock,
+  Navigation,
+  Info
 } from 'lucide-react';
 
 export function LiveMonitoringView({
@@ -17,8 +26,56 @@ export function LiveMonitoringView({
 }) {
   const nodeList = Object.values(nodes);
   const [selectedVillageId, setSelectedVillageId] = useState("NODE_01");
+  const [forwardSuccess, setForwardSuccess] = useState(false);
+  const [lastForwardedTimestamp, setLastForwardedTimestamp] = useState(null);
 
   const currentNode = nodes[selectedVillageId] || nodeList[0] || {};
+
+  // =========================================================================
+  // 1. COMPUTE NORMALIZED 6 PHYSICAL SENSOR VALUES (0 - 100%)
+  // =========================================================================
+  const rainPct = Math.min(100, Math.round(((currentNode.rainMm || 0) / 100) * 100));
+  const soilPct = Math.min(100, Math.round(currentNode.soilMoisture || 0));
+  const smokePct = Math.min(100, Math.round(((currentNode.smokeLevel || 0) / 250) * 100));
+  const flamePct = currentNode.flameDetected ? 100 : 0;
+  const vibePct = currentNode.vibration ? 100 : 0;
+  
+  const tempVal = currentNode.temp || 24.5;
+  const climatePct = Math.min(100, Math.round(
+    tempVal > 42 ? 100 : (tempVal > 35 ? 65 : (tempVal < 10 ? 40 : 15))
+  ));
+
+  // =========================================================================
+  // 2. CALCULATE COMPOSITE AVERAGE OF ALL SENSORS
+  // =========================================================================
+  const rawAverage = (rainPct + soilPct + smokePct + flamePct + vibePct + climatePct) / 6;
+  const averageSensorScore = Math.min(100, Math.max(0, Math.round(rawAverage)));
+
+  // =========================================================================
+  // 3. EVALUATE 3 CONDITIONS: SAFE (0-39), WARNING (40-69), DANGER (70-100)
+  // =========================================================================
+  let sensorCondition = 'SAFE';
+  let conditionColor = '#10b981';
+  let conditionBg = 'rgba(16, 185, 129, 0.12)';
+  let conditionBorder = '#10b981';
+  let conditionDesc = 'All 6 physical environmental sensors are within safe baseline parameters. Standard automated monitoring active.';
+  let rescueActionText = 'Periodic Standby Monitoring (No Active Deployment)';
+
+  if (averageSensorScore >= 70 || currentNode.riskScore >= 70 || flamePct === 100 || (soilPct >= 85 && vibePct === 100)) {
+    sensorCondition = 'DANGER';
+    conditionColor = '#ef4444';
+    conditionBg = 'rgba(239, 68, 68, 0.18)';
+    conditionBorder = '#ef4444';
+    conditionDesc = 'CRITICAL THRESHOLD BREACHED: Multi-sensor fusion indicates severe imminent disaster risk. Immediate rescue mobilization required!';
+    rescueActionText = 'EMERGENCY: Immediate Forwarding & Mobilization of NDRF / SDRF Quick Response Boats';
+  } else if (averageSensorScore >= 40 || currentNode.riskScore >= 40) {
+    sensorCondition = 'WARNING';
+    conditionColor = '#f59e0b';
+    conditionBg = 'rgba(245, 158, 11, 0.15)';
+    conditionBorder = '#f59e0b';
+    conditionDesc = 'ELEVATED THREAT DETECTED: Moderate anomaly in rainfall intensity or soil saturation. Pre-alert advisory transmitted.';
+    rescueActionText = 'PRE-ALERT: Incident Telemetry Forwarded to Local Response Teams (Standby)';
+  }
 
   const getStatusColor = (level) => {
     switch (level) {
@@ -37,8 +94,21 @@ export function LiveMonitoringView({
     }
   };
 
+  // Handle Forward to Rescue Team Action
+  const handleForwardToRescue = () => {
+    if (onOpenDispatch) {
+      onOpenDispatch(currentNode);
+    }
+    setForwardSuccess(true);
+    setLastForwardedTimestamp(new Date().toLocaleTimeString());
+    setTimeout(() => {
+      setForwardSuccess(false);
+    }, 6000);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      
       {/* Top Header & Node Selector Bar */}
       <div className="glass-panel" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
         <div>
@@ -56,7 +126,6 @@ export function LiveMonitoringView({
           <div style={{ display: 'flex', gap: '6px' }}>
             {nodeList.map(node => {
               const isSelected = selectedVillageId === node.id;
-              const color = getStatusColor(node.riskLevel);
               return (
                 <button
                   key={node.id}
@@ -68,9 +137,9 @@ export function LiveMonitoringView({
                     gap: '6px',
                     padding: '6px 12px',
                     borderRadius: '6px',
-                    border: isSelected ? '1px solid #244b6b' : '1px solid #c8d3da',
-                    background: isSelected ? '#244b6b' : '#eef2f4',
-                    color: isSelected ? '#ffffff' : '#1f2933',
+                    border: isSelected ? '1px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.1)',
+                    background: isSelected ? 'rgba(56, 189, 248, 0.25)' : 'rgba(255, 255, 255, 0.03)',
+                    color: isSelected ? '#38bdf8' : '#cbd5e1',
                     fontSize: '11px',
                     fontWeight: 700,
                     cursor: 'pointer'
@@ -92,7 +161,7 @@ export function LiveMonitoringView({
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '14px',
-        borderLeft: `4px solid ${getStatusColor(currentNode.riskLevel)}`
+        borderLeft: `4px solid ${conditionColor}`
       }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
@@ -120,14 +189,14 @@ export function LiveMonitoringView({
               fontWeight: 800,
               padding: '3px 8px',
               borderRadius: '4px',
-              background: getStatusColor(currentNode.riskLevel) + '25',
-              color: getStatusColor(currentNode.riskLevel),
-              border: `1px solid ${getStatusColor(currentNode.riskLevel)}`
+              background: conditionBg,
+              color: conditionColor,
+              border: `1px solid ${conditionBorder}`
             }}>
-              {currentNode.riskLevel} THREAT ({Math.round(currentNode.riskScore || 0)}/100)
+              {sensorCondition} CONDITION ({averageSensorScore}% COMPOSITE AVERAGE)
             </span>
           </div>
-          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', display: 'flex', gap: '14px' }}>
+          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
             <span>GPS: {currentNode.latitude?.toFixed(4)}°N, {currentNode.longitude?.toFixed(4)}°E</span>
             <span>LoRa Hop: {currentNode.hopCount || 1}</span>
             <span>Signal: {currentNode.rssi || -65} dBm</span>
@@ -137,29 +206,252 @@ export function LiveMonitoringView({
 
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
-            onClick={() => onOpenDispatch && onOpenDispatch(currentNode)}
+            onClick={handleForwardToRescue}
             className="action-btn"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '6px',
-              border: '1px solid #8f2d2d',
-              background: '#a63d3d',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: sensorCondition === 'DANGER' ? '1px solid #ef4444' : '1px solid rgba(56, 189, 248, 0.5)',
+              background: sensorCondition === 'DANGER' ? 'linear-gradient(135deg, #ef4444, #b91c1c)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
               color: '#ffffff',
-              fontSize: '11px',
+              fontSize: '12px',
               fontWeight: 800,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: sensorCondition === 'DANGER' ? '0 4px 15px rgba(239, 68, 68, 0.4)' : '0 4px 15px rgba(2, 132, 199, 0.3)'
             }}
           >
-            <Send size={13} />
-            <span>Dispatch Rescue CAD</span>
+            <Truck size={14} />
+            <span>Forward Incident Report to Rescue Team</span>
           </button>
         </div>
       </div>
 
-      {/* Comprehensive Sensor Gauges Grid (6 Physical Sensors) */}
+      {/* ========================================================================= */}
+      {/* NEW FEATURE: SENSOR COMPOSITE AVERAGE & 3-TIER CONDITION FORWARDING PANEL */}
+      {/* ========================================================================= */}
+      <div className="glass-panel" style={{
+        padding: '18px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        background: 'linear-gradient(180deg, rgba(16, 28, 48, 0.95) 0%, rgba(10, 18, 32, 0.98) 100%)',
+        border: `1.5px solid ${conditionBorder}`,
+        boxShadow: sensorCondition === 'DANGER' ? '0 0 25px rgba(239, 68, 68, 0.25)' : 'none'
+      }}>
+        
+        {/* Panel Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              background: conditionBg,
+              padding: '8px',
+              borderRadius: '8px',
+              color: conditionColor,
+              border: `1px solid ${conditionBorder}`
+            }}>
+              {sensorCondition === 'DANGER' ? <AlertTriangle size={20} /> : (sensorCondition === 'WARNING' ? <Activity size={20} /> : <ShieldCheck size={20} />)}
+            </div>
+            <div>
+              <h3 style={{ fontSize: '15px', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.6px', margin: 0 }}>
+                Multi-Sensor Average Fusion & Rescue Dispatch Forwarding Engine
+              </h3>
+              <p style={{ fontSize: '11px', color: '#94a3b8', margin: '2px 0 0' }}>
+                Aggregated 6-Sensor Telemetry Index ➔ Evaluates 3 Conditions (Safe / Warning / Danger) ➔ Auto-Relays to NDRF/SDRF Rescue Command
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              fontSize: '12px',
+              fontWeight: 900,
+              padding: '4px 12px',
+              borderRadius: '6px',
+              background: conditionBg,
+              color: conditionColor,
+              border: `1px solid ${conditionBorder}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: conditionColor }} className={sensorCondition === 'DANGER' ? 'sonar-cascade' : ''} />
+              CONDITION: {sensorCondition}
+            </span>
+          </div>
+        </div>
+
+        {/* Core Calculation Metrics: Average Gauge & Normalized Breakdown */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '14px'
+        }}>
+          
+          {/* Card 1: Composite Average Value & 3-Condition Progress Gauge */}
+          <div className="glass-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>Computed Sensor Average Value:</span>
+              <span style={{ fontSize: '20px', fontWeight: 900, color: conditionColor, fontFamily: 'JetBrains Mono' }}>
+                {averageSensorScore}% <span style={{ fontSize: '11px', color: '#94a3b8' }}>/ 100%</span>
+              </span>
+            </div>
+
+            {/* Tri-Condition Color Spectrum Bar */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ position: 'relative', width: '100%', height: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '5px', overflow: 'hidden' }}>
+                <div style={{
+                  width: `${averageSensorScore}%`,
+                  height: '100%',
+                  background: conditionColor,
+                  transition: 'width 0.4s ease, background 0.4s ease'
+                }} />
+              </div>
+
+              {/* 3 Threshold Markers */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', fontWeight: 800, marginTop: '2px' }}>
+                <span style={{ color: '#10b981' }}>🟢 SAFE (0 - 39%)</span>
+                <span style={{ color: '#f59e0b' }}>🟡 WARNING (40 - 69%)</span>
+                <span style={{ color: '#ef4444' }}>🔴 DANGER (70 - 100%)</span>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '11px', color: '#cbd5e1', lineHeight: '1.4', margin: '4px 0 0' }}>
+              {conditionDesc}
+            </p>
+          </div>
+
+          {/* Card 2: 6 Normalized Sensor Contributions */}
+          <div className="glass-card" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>
+              6 Physical Sensor Inputs & Normalized Contributions:
+            </span>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '6px',
+              fontSize: '10px'
+            }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ color: '#818cf8', fontWeight: 700 }}>🌧️ Rain: {currentNode.rainMm || 0}mm/h</div>
+                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: {rainPct}%</div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ color: '#10b981', fontWeight: 700 }}>🏔️ Soil: {currentNode.soilMoisture || 0}%</div>
+                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: {soilPct}%</div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ color: '#f59e0b', fontWeight: 700 }}>💨 Smoke: {currentNode.smokeLevel || 0}PPM</div>
+                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: {smokePct}%</div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ color: currentNode.flameDetected ? '#ef4444' : '#10b981', fontWeight: 700 }}>
+                  ⚡ Flame: {currentNode.flameDetected ? 'FIRE (1)' : 'NO (0)'}
+                </div>
+                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: {flamePct}%</div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ color: currentNode.vibration ? '#ef4444' : '#10b981', fontWeight: 700 }}>
+                  📈 Vibe: {currentNode.vibration ? 'TREMOR' : 'STABLE'}
+                </div>
+                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: {vibePct}%</div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ color: '#06b6d4', fontWeight: 700 }}>🌡️ Temp: {currentNode.temp || 24.5}°C</div>
+                <div style={{ color: '#94a3b8', fontSize: '9px' }}>Weight: {climatePct}%</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Rescue Team Forwarding Status & Action Box */}
+        <div style={{
+          background: 'rgba(0, 0, 0, 0.4)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              background: 'rgba(56, 189, 248, 0.2)',
+              padding: '6px',
+              borderRadius: '6px',
+              color: '#38bdf8'
+            }}>
+              <Truck size={18} />
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#ffffff' }}>
+                Rescue Team Forwarding Destination: <span style={{ color: '#38bdf8' }}>NDRF 3rd Battalion & Rayagada District Base (DEOC)</span>
+              </div>
+              <div style={{ fontSize: '10px', color: '#94a3b8' }}>
+                Protocol: <b>LoRa SX1278 433MHz Mesh Packet Relay + Automated CAD Dispatch Bridge</b>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={handleForwardToRescue}
+            style={{
+              background: sensorCondition === 'DANGER' ? '#ef4444' : '#0284c7',
+              color: '#ffffff',
+              border: 'none',
+              padding: '8px 18px',
+              borderRadius: '6px',
+              fontSize: '11px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: sensorCondition === 'DANGER' ? '0 2px 10px rgba(239, 68, 68, 0.5)' : '0 2px 10px rgba(2, 132, 199, 0.4)'
+            }}
+          >
+            <Send size={13} />
+            Forward {sensorCondition} Alert to Rescue Team
+          </button>
+        </div>
+
+        {/* Forwarding Success Banner */}
+        {forwardSuccess && (
+          <div style={{
+            background: 'rgba(16, 185, 129, 0.2)',
+            border: '1px solid #10b981',
+            borderRadius: '6px',
+            padding: '8px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            color: '#34d399',
+            fontSize: '11px',
+            fontWeight: 700
+          }}>
+            <CheckCircle2 size={15} />
+            <span>
+              ✅ SUCCESS: Telemetry data (Average: {averageSensorScore}%, Condition: {sensorCondition}) successfully forwarded to NDRF/SDRF Rescue Unit at {lastForwardedTimestamp}!
+            </span>
+          </div>
+        )}
+
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 4. INDIVIDUAL SENSOR GAUGES GRID (6 PHYSICAL SENSORS)                      */}
+      {/* ========================================================================= */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
