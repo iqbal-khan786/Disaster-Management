@@ -165,7 +165,7 @@ export function LiveMonitoringView({
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
         gap: '16px'
       }}>
-        {/* Sensor 1: Rainfall Intensity (Rain Sensor Pin 34) */}
+        {/* Sensor 1: Rainfall Intensity (Rain Sensor) */}
         <div className="glass-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

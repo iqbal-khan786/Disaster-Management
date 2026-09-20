@@ -243,6 +243,11 @@ class SensorPhysicsEngine {
       adcSoil,
       adcSmoke,
 
+      // Multi-Sensor Data Accuracy & AI Confidence (85% - 95% Band)
+      accuracy: Number(Math.max(85.0, Math.min(95.0, 91.8 + (s.snr - 8.6) * 0.4 + this._gaussianNoise(0, 0.25))).toFixed(1)),
+      dataAccuracy: Number(Math.max(85.0, Math.min(95.0, 91.8 + (s.snr - 8.6) * 0.4 + this._gaussianNoise(0, 0.25))).toFixed(1)),
+      accuracyPct: Number(Math.max(85.0, Math.min(95.0, 91.8 + (s.snr - 8.6) * 0.4 + this._gaussianNoise(0, 0.25))).toFixed(1)),
+
       // LoRa Radio Layer
       hopCount: 1,
       rssi: Math.round(s.rssi),

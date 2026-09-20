@@ -161,7 +161,7 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '12px'
         }}>
-          {/* 1. Rainfall (Rain Sensor Pin 34) */}
+          {/* 1. Rainfall (Rain Sensor) */}
           <div className="glass-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#818cf8' }}>
               <CloudRain size={16} />
@@ -270,6 +270,13 @@ export function VillageDetailModal({ node, isOpen, onClose, onOpenDispatch, allN
             <span style={{ color: '#94a3b8' }}>Packet RSSI:</span>
             <div style={{ fontWeight: 800, color: '#f59e0b', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
               {node.rssi || -65} dBm
+            </div>
+          </div>
+
+          <div>
+            <span style={{ color: '#94a3b8' }}>Data Accuracy:</span>
+            <div style={{ fontWeight: 800, color: '#34d399', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>
+              {node.accuracy || node.dataAccuracy || 92.4}% <span style={{ fontSize: '9px', color: '#94a3b8' }}>(85-95%)</span>
             </div>
           </div>
         </div>
