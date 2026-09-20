@@ -105,30 +105,30 @@ const DOWNSTREAM_WAVE2_POLYGON = [
 const SAFE_SHELTERS = [
   {
     id: 'SHELTER_01',
-    name: 'Kashipur Highland Safe Evacuation Shelter',
+    name: 'Village 1 Highland Safe Shelter',
     lat: 19.2620,
     lng: 83.3420,
-    capacity: '850 Persons',
+    capacity: '850 Persons (V1)',
     elevation: '495m (Highland Ridge)',
     distance: '1.2 km',
     duration: '8 mins walk'
   },
   {
     id: 'SHELTER_02',
-    name: 'Kolnara High School Relief Camp',
+    name: 'Village 2 Kolnara Relief Camp',
     lat: 19.2280,
     lng: 83.4020,
-    capacity: '1,200 Persons',
+    capacity: '1,200 Persons (V2)',
     elevation: '620m (Mountain Plateau)',
     distance: '1.8 km',
     duration: '12 mins walk'
   },
   {
     id: 'SHELTER_03',
-    name: 'Rayagada Indoor Stadium Relief Base',
+    name: 'HeadQuarters Rayagada Relief Base',
     lat: 19.1620,
     lng: 83.4120,
-    capacity: '2,500 Persons',
+    capacity: '2,500 Persons (HQ)',
     elevation: '235m (Command Base)',
     distance: '0.8 km',
     duration: '5 mins'
@@ -149,6 +149,7 @@ export function PreDisasterImpactMap({
 
   // Layer Refs
   const riverPolylineRef = useRef(null);
+  const v1DisasterCircleRef = useRef(null);
   const primaryFloodPolyRef = useRef(null);
   const wave1FloodPolyRef = useRef(null);
   const wave2FloodPolyRef = useRef(null);
@@ -162,7 +163,7 @@ export function PreDisasterImpactMap({
   const [showSurgePath, setShowSurgePath] = useState(true);
   const [showShelters, setShowShelters] = useState(true);
   const [showNavigationRoute, setShowNavigationRoute] = useState(true);
-  const [selectedPlaceId, setSelectedPlaceId] = useState('P1');
+  const [selectedPlaceId, setSelectedPlaceId] = useState('V1');
   const [searchQuery, setSearchQuery] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [cursorCoords, setCursorCoords] = useState({ lat: 19.1950, lng: 83.3900, elev: 380 });
@@ -308,19 +309,19 @@ export function PreDisasterImpactMap({
 
     return [
       {
-        id: 'P1',
+        id: 'V1',
         nodeId: 'NODE_01',
-        name: 'Village 1: Kashipur Catchment Basin',
-        shortName: 'Kashipur Valley',
-        category: 'Ground Zero (Upstream Surge)',
+        name: 'Village 1 (Disaster Area - Epicenter)',
+        shortName: 'Village 1 (Disaster Zone)',
+        category: 'Ground Zero • Disaster Area (Epicenter)',
         lat: 19.2450,
         lng: 83.3300,
         elevation: '460m MSL (Valley Plain)',
-        population: 1850,
-        wardsCount: 4,
-        threatLevel: isEmerg ? 'CRITICAL (GROUND ZERO)' : (isWarn ? 'HIGH RISK' : 'NORMAL'),
-        threatScore: isEmerg ? 96 : (isWarn ? 68 : 18),
-        pinColor: isEmerg ? '#ef4444' : (isWarn ? '#f59e0b' : '#10b981'),
+        population: 2850,
+        wardsCount: 6,
+        threatLevel: isEmerg ? 'CRITICAL (DISASTER AREA)' : (isWarn ? 'HIGH RISK' : 'NORMAL'),
+        threatScore: isEmerg ? 96 : (isWarn ? 68 : 28),
+        pinColor: '#ef4444',
         leadTimeText: isEmerg ? 'IMMEDIATE (< 10 Mins)' : (isWarn ? '30 Mins Watch' : 'Nominal Flow'),
         leadTimeMinutes: isEmerg ? 8 : (isWarn ? 30 : null),
         
@@ -331,28 +332,28 @@ export function PreDisasterImpactMap({
         shelterStayDays: isEmerg ? '3 to 5 Days' : (isWarn ? '1 to 2 Days' : '0 Days'),
         
         impactDescription: isEmerg
-          ? 'Epicenter of torrential runoff. River surge breaching low embankments. Severe waterlogging for 48-72 hours.'
-          : 'Catchment river bed stable. Water level within 0.7m baseline.',
-        safeShelter: 'Kashipur Highland Safe Shelter (495m)',
-        evacuationRouteDistance: '1.2 km (Ascending Route B-1)',
+          ? 'Epicenter of torrential surge and flood hazard. Embankments breached, active transparent red disaster zone.'
+          : 'Village 1 catchment basin nominal. Water levels within safe thresholds.',
+        safeShelter: 'Village 1 Highland Safe Shelter (495m)',
+        evacuationRouteDistance: '1.2 km (Ascending Route V1)',
         navigationPath: [[19.2450, 83.3300], [19.2520, 83.3350], [19.2620, 83.3420]],
         sirenStatus: isEmerg ? 'ACTIVATED (110dB SIREN)' : 'ARMED / STANDBY',
-        actionRequired: isEmerg ? 'Mandatory Immediate Evacuation' : 'Continuous Telemetry Monitoring'
+        actionRequired: isEmerg ? 'Mandatory Immediate Evacuation to Safe Highland Shelter' : 'Continuous Telemetry Monitoring'
       },
       {
-        id: 'P2',
+        id: 'V2',
         nodeId: 'NODE_02',
-        name: 'Village 2: Chandili / Kolnara Lowlands',
-        shortName: 'Chandili & Kolnara',
-        category: 'Downstream Sector 1 (Intermediate Corridor)',
+        name: 'Village 2 (Downstream Relay Zone)',
+        shortName: 'Village 2 (Downstream)',
+        category: 'Downstream Sector • Warning Corridor',
         lat: 19.2150,
         lng: 83.3900,
         elevation: '380m Lowbank / 620m Ridge',
-        population: 2400,
-        wardsCount: 5,
+        population: 3400,
+        wardsCount: 7,
         threatLevel: isEmerg ? 'HIGH RISK (IMMINENT SURGE)' : (isWarn ? 'WARNING' : 'NORMAL'),
-        threatScore: isEmerg ? 84 : (isWarn ? 54 : 15),
-        pinColor: isEmerg ? '#f97316' : (isWarn ? '#f59e0b' : '#10b981'),
+        threatScore: isEmerg ? 84 : (isWarn ? 54 : 22),
+        pinColor: '#f97316',
         leadTimeText: isEmerg ? '+42 Mins Early Lead-Time' : (isWarn ? '+55 Mins Lead-Time' : 'Nominal Flow'),
         leadTimeMinutes: isEmerg ? 42 : (isWarn ? 55 : null),
         
@@ -362,75 +363,44 @@ export function PreDisasterImpactMap({
         shelterStayDays: isEmerg ? '2 to 3 Days' : (isWarn ? '1 Day' : '0 Days'),
 
         impactDescription: isEmerg
-          ? 'Flood crest propagating down Nagavali channel. Agricultural banks submerged for 24-36 hours.'
+          ? 'Downstream relay surge advancing along river corridor. Lowland farmlands and pathway culverts at high risk.'
           : 'River discharge within safe thresholds.',
-        safeShelter: 'Kolnara High School Relief Camp (620m)',
-        evacuationRouteDistance: '1.8 km (Ridge Highway K-2)',
+        safeShelter: 'Village 2 Kolnara Relief Camp (620m)',
+        evacuationRouteDistance: '1.8 km (Ridge Highway V2)',
         navigationPath: [[19.2150, 83.3900], [19.2200, 83.3950], [19.2280, 83.4020]],
         sirenStatus: isEmerg ? 'EARLY WARNING SIREN BROADCAST' : 'ARMED / STANDBY',
-        actionRequired: isEmerg ? 'Pre-emptive Evacuation of Riverside Hamlets' : 'LoRa Mesh Relay Nominal'
+        actionRequired: isEmerg ? 'Pre-emptive Evacuation of Lowland Hamlets' : 'LoRa Mesh Relay Nominal'
       },
       {
-        id: 'P3',
-        nodeId: 'NODE_03',
-        name: 'Sector 3: Kumbhikota Downstream Reach',
-        shortName: 'Kumbhikota Reach',
-        category: 'Downstream Sector 2 (River Meander)',
-        lat: 19.1850,
-        lng: 83.4120,
-        elevation: '290m MSL (Low-Bank Meander)',
-        population: 1900,
-        wardsCount: 3,
-        threatLevel: isEmerg ? 'WARNING (ELEVATED WATCH)' : (isWarn ? 'ADVISORY' : 'NORMAL'),
-        threatScore: isEmerg ? 66 : (isWarn ? 42 : 12),
-        pinColor: isEmerg ? '#f59e0b' : (isWarn ? '#38bdf8' : '#10b981'),
-        leadTimeText: isEmerg ? '+68 Mins Early Lead-Time' : (isWarn ? '+85 Mins Lead-Time' : 'Nominal Flow'),
-        leadTimeMinutes: isEmerg ? 68 : (isWarn ? 85 : null),
-        
-        impactDurationHours: isEmerg ? '18 - 24 Hours' : (isWarn ? '10 - 14 Hours' : '0 Hours'),
-        waterloggingDepth: isEmerg ? '0.70 - 1.10 meters' : '0.2 m',
-        recessionEta: isEmerg ? 'Fast drainage into lower basin in 18 Hours' : 'Nominal Flow',
-        shelterStayDays: isEmerg ? '1 to 2 Days' : '0 Days',
-
-        impactDescription: isEmerg
-          ? 'Culverts and low pathway bridges submerged for 18-24 hours. Fast drainage once upstream rains cease.'
-          : 'Water level nominal.',
-        safeShelter: 'Kolnara Relief Camp / Rayagada Base',
-        evacuationRouteDistance: '2.4 km (District Road 4)',
-        navigationPath: [[19.1850, 83.4120], [19.1750, 83.4140], [19.1620, 83.4120]],
-        sirenStatus: isEmerg ? 'COMMUNITY RADIO PRE-ALERT' : 'STANDBY',
-        actionRequired: isEmerg ? 'Fortify River Embankments & Move Livestock' : 'Periodic Visual Inspection'
-      },
-      {
-        id: 'P4',
+        id: 'HQ',
         nodeId: 'NODE_04',
-        name: 'Sector 4: Rayagada Urban Basin & DEOC HQ',
-        shortName: 'Rayagada Central HQ',
-        category: 'District Command Hub & Barrage Outlet',
+        name: 'HeadQuarters (Rayagada DEOC Command Base)',
+        shortName: 'Central HeadQuarters (HQ)',
+        category: 'District Command Hub & Central Operations Base',
         lat: 19.1670,
         lng: 83.4170,
-        elevation: '210m MSL (Collectorate Base)',
-        population: 2200,
-        wardsCount: 2,
-        threatLevel: isEmerg ? 'ADVISORY (BARRAGE READINESS)' : 'NORMAL',
-        threatScore: isEmerg ? 45 : 10,
-        pinColor: isEmerg ? '#38bdf8' : '#10b981',
-        leadTimeText: isEmerg ? '+95 Mins Advance Lead-Time' : 'Nominal Flow',
+        elevation: '235m MSL (Central Command Base)',
+        population: 5200,
+        wardsCount: 8,
+        threatLevel: isEmerg ? 'DEOC COMMAND BASE (ACTIVE)' : 'NOMINAL BASE',
+        threatScore: isEmerg ? 45 : 16,
+        pinColor: '#38bdf8',
+        leadTimeText: isEmerg ? '+95 Mins Advance Lead-Time' : 'Command Operations Nominal',
         leadTimeMinutes: isEmerg ? 95 : null,
         
         impactDurationHours: isEmerg ? '12 - 18 Hours (Regulated)' : '0 Hours',
         waterloggingDepth: isEmerg ? '0.35 - 0.60 meters' : '0.0 m',
         recessionEta: isEmerg ? 'Drainage via sluice gates in 12-18 Hours' : 'Nominal Flow',
-        shelterStayDays: '0 - 1 Day (Standby)',
+        shelterStayDays: '0 - 1 Day (Standby Base)',
 
         impactDescription: isEmerg
-          ? 'Flood crest reaches Rayagada urban low-bank culverts in ~95 mins. Barrage sluice gates open for 16 hours.'
+          ? 'Central Command HeadQuarters coordinating NDRF/SDRF rapid response units and regulating barrage sluice gates.'
           : 'All urban drainage and barrage channels flowing normally.',
-        safeShelter: 'Rayagada Indoor Stadium Command Relief Base (235m)',
-        evacuationRouteDistance: '0.8 km (Collectorate Bypass Road)',
+        safeShelter: 'HeadQuarters Rayagada Relief Base (235m)',
+        evacuationRouteDistance: '0.8 km (Command Bypass Road)',
         navigationPath: [[19.1670, 83.4170], [19.1640, 83.4140], [19.1620, 83.4120]],
-        sirenStatus: isEmerg ? 'DEOC COMMAND STANDBY' : 'NOMINAL',
-        actionRequired: isEmerg ? 'Regulate Barrage Sluice Gates & Deploy NDRF Boats' : 'Operational Readiness'
+        sirenStatus: isEmerg ? 'DEOC COMMAND ACTIVE' : 'NOMINAL',
+        actionRequired: isEmerg ? 'Regulate Barrage Sluice Gates & Deploy Rescue Boats' : 'Operational Readiness'
       }
     ];
   }, [threatState]);
@@ -627,6 +597,39 @@ export function PreDisasterImpactMap({
     const isEmerg = threatState.severity === 'CRITICAL';
     const isWarn = threatState.severity === 'WARNING';
 
+    // 0. Transparent Red Circle over Village 1 (Disaster Area)
+    if (v1DisasterCircleRef.current) {
+      map.removeLayer(v1DisasterCircleRef.current);
+      v1DisasterCircleRef.current = null;
+    }
+    
+    // Always render transparent red circle for Village 1 (Disaster Area)
+    const v1Circle = L.circle([19.2450, 83.3300], {
+      radius: 2200, // 2.2 km radius around Village 1
+      color: '#ef4444',
+      weight: 3,
+      fillColor: '#ef4444',
+      fillOpacity: isEmerg ? 0.32 : 0.22,
+      dashArray: '6, 6',
+      className: 'v1-disaster-circle'
+    }).addTo(map);
+
+    v1Circle.bindPopup(`
+      <div style="font-family: sans-serif; padding: 6px; min-width: 230px;">
+        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+          <span style="font-size: 16px;">🚨</span>
+          <b style="color: #ef4444; font-size: 13px;">VILLAGE 1 : DISASTER AREA</b>
+        </div>
+        <div style="font-size: 11px; color: #1e293b; line-height: 1.4;">
+          • <b>Status:</b> Ground Zero • Active Hazard Epicenter<br/>
+          • <b>Perimeter:</b> 2.2 km Inundation Radius<br/>
+          • <b>Coordinates:</b> 19.2450°N, 83.3300°E<br/>
+          • <b>Evacuation:</b> Village 1 Highland Safe Shelter
+        </div>
+      </div>
+    `);
+    v1DisasterCircleRef.current = v1Circle;
+
     // 1. Primary Flood Polygon (Ground Zero)
     if (primaryFloodPolyRef.current) {
       map.removeLayer(primaryFloodPolyRef.current);
@@ -642,13 +645,13 @@ export function PreDisasterImpactMap({
       }).addTo(map).bindPopup(`
         <div style="font-family: sans-serif; padding: 4px;">
           <b style="color: #ef4444; font-size: 13px;">⚠️ CRITICAL INUNDATION ZONE (GROUND ZERO)</b><br/>
-          <span style="font-size: 11px; color: #334155;">Kashipur Valley Catchment Basin</span><br/>
+          <span style="font-size: 11px; color: #334155;">Village 1 Valley Catchment Basin</span><br/>
           <span style="font-size: 10px; color: #ef4444; font-weight: 700;">Submerged Area: ~4.2 km² • Affecting for ~48 to 72 Hours</span>
         </div>
       `);
     }
 
-    // 2. Downstream Wave 1 (Kolnara)
+    // 2. Downstream Wave 1 (Village 2 Corridor)
     if (wave1FloodPolyRef.current) {
       map.removeLayer(wave1FloodPolyRef.current);
       wave1FloodPolyRef.current = null;
@@ -663,13 +666,13 @@ export function PreDisasterImpactMap({
       }).addTo(map).bindPopup(`
         <div style="font-family: sans-serif; padding: 4px;">
           <b style="color: #ea580c; font-size: 13px;">🌊 DOWNSTREAM WAVE 1 PROJECTED ZONE</b><br/>
-          <span style="font-size: 11px; color: #334155;">Chandili & Kolnara Lowland Corridor</span><br/>
+          <span style="font-size: 11px; color: #334155;">Village 2 Lowland Warning Corridor</span><br/>
           <span style="font-size: 10px; color: #ea580c; font-weight: 700;">Flood Arrival: +42 Mins • Inundation Duration: ~24 to 36 Hours</span>
         </div>
       `);
     }
 
-    // 3. Downstream Wave 2 (Kumbhikota & Rayagada Outskirts)
+    // 3. Downstream Wave 2 (HeadQuarters Reach)
     if (wave2FloodPolyRef.current) {
       map.removeLayer(wave2FloodPolyRef.current);
       wave2FloodPolyRef.current = null;
@@ -684,7 +687,7 @@ export function PreDisasterImpactMap({
       }).addTo(map).bindPopup(`
         <div style="font-family: sans-serif; padding: 4px;">
           <b style="color: #0284c7; font-size: 13px;">⚡ DOWNSTREAM WAVE 2 ADVISORY BUFFER</b><br/>
-          <span style="font-size: 11px; color: #334155;">Kumbhikota & Rayagada Basin Outskirts</span><br/>
+          <span style="font-size: 11px; color: #334155;">HeadQuarters DEOC Base Outskirts</span><br/>
           <span style="font-size: 10px; color: #0284c7; font-weight: 700;">Projected Arrival: +68 to +95 Mins • Impact: 12-18 Hours</span>
         </div>
       `);
@@ -696,6 +699,15 @@ export function PreDisasterImpactMap({
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     const map = mapInstanceRef.current;
+
+    // Clean up markers that are no longer in disasterPlaces
+    const currentPlaceIds = new Set(disasterPlaces.map(p => p.id));
+    Object.keys(markersRef.current).forEach(id => {
+      if (!currentPlaceIds.has(id)) {
+        map.removeLayer(markersRef.current[id]);
+        delete markersRef.current[id];
+      }
+    });
 
     disasterPlaces.forEach(place => {
       const isSelected = selectedPlaceId === place.id;
@@ -877,7 +889,7 @@ export function PreDisasterImpactMap({
                 </span>
               </div>
               <p style={{ fontSize: '11px', color: '#94a3b8', margin: '3px 0 0' }}>
-                Nagavali River Corridor (Kashipur Valley ➔ Chandili ➔ Kolnara ➔ Rayagada HQ) • Real-Time Hydrological Surge Lead-Time & Duration Modeling
+                Nagavali River Corridor (Village 1 ➔ Village 2 ➔ HeadQuarters Base) • Real-Time Hydrological Surge Lead-Time & Duration Modeling
               </p>
             </div>
           </div>
@@ -944,10 +956,10 @@ export function PreDisasterImpactMap({
               <MapPin size={15} color={threatState.severity === 'CRITICAL' ? '#ef4444' : '#10b981'} />
             </div>
             <div style={{ fontSize: '22px', fontWeight: 900, color: threatState.severity === 'CRITICAL' ? '#f87171' : '#34d399', fontFamily: 'JetBrains Mono', margin: '4px 0' }}>
-              {threatState.severity === 'CRITICAL' ? '4 Downstream Sectors' : '0 Sectors at Risk'}
+              {threatState.severity === 'CRITICAL' ? '3 Sectors (V1, V2, HQ)' : '0 Sectors at Risk'}
             </div>
             <div style={{ fontSize: '10px', color: '#cbd5e1' }}>
-              {threatState.severity === 'CRITICAL' ? '14 Wards & Hamlets in Floodplain' : 'All 4 Sectors Operating Nominally'}
+              {threatState.severity === 'CRITICAL' ? 'Village 1 (Disaster Zone) & Village 2 at Risk' : 'All 3 Sectors Operating Nominally'}
             </div>
           </div>
 
@@ -986,10 +998,10 @@ export function PreDisasterImpactMap({
               <Users size={15} color="#c084fc" />
             </div>
             <div style={{ fontSize: '22px', fontWeight: 900, color: '#c084fc', fontFamily: 'JetBrains Mono', margin: '4px 0' }}>
-              {threatState.severity === 'CRITICAL' ? '8,350 Citizens' : '0 Citizens'}
+              {threatState.severity === 'CRITICAL' ? '6,250 Citizens' : '0 Citizens'}
             </div>
             <div style={{ fontSize: '10px', color: '#cbd5e1' }}>
-              Spread Footprint: <b>{threatState.totalSpreadKm2} km²</b> Floodplain Buffer
+              Spread Footprint: <b>{threatState.totalSpreadKm2} km²</b> Inundation Buffer
             </div>
           </div>
         </div>
@@ -1096,7 +1108,7 @@ export function PreDisasterImpactMap({
               <Search size={16} color="#5f6368" />
               <input
                 type="text"
-                placeholder="Search Kashipur, Chandili, Kolnara, Rayagada..."
+                placeholder="Search Village 1, Village 2, HeadQuarters..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
