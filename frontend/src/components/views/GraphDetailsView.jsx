@@ -38,62 +38,121 @@ ChartJS.register(
 export function GraphDetailsView({ history = [], nodes = {} }) {
   const nodeList = Object.values(nodes);
   const [selectedVillageId, setSelectedVillageId] = useState('NODE_01');
-  const [timeRange, setTimeRange] = useState('all'); // '15m', '1h', 'all'
+  const [timeRange, setTimeRange] = useState('1hr'); // '1hr', '6hr', '1day', '1week', '1month'
 
   const currentNode = nodes[selectedVillageId] || nodeList[0] || {};
 
-  // Build telemetry data with smooth natural variations for live visualization
+  const timeRangeOptions = [
+    { id: '1hr', label: '1 Hour' },
+    { id: '6hr', label: '6 Hours' },
+    { id: '1day', label: '1 Day' },
+    { id: '1week', label: '1 Week' },
+    { id: '1month', label: '1 Month' }
+  ];
+
+  // Build telemetry data with smooth natural variations for each selected time interval
   const telemetryData = useMemo(() => {
-    const rawHistory = (history && history.length > 0) ? history : [];
     const baseTemp = Number(currentNode.temp || 26.5);
     const baseHum = Number(currentNode.humidity || 68.0);
+    const now = Date.now();
 
-    if (rawHistory.length < 5) {
+    // 1 Hour Range: 20 data points every 3 minutes
+    if (timeRange === '1hr') {
+      const count = 20;
+      const stepMs = 3 * 60 * 1000;
       const points = [];
-      const now = Date.now();
-      const count = 18;
-
       for (let i = count - 1; i >= 0; i--) {
-        const timeStr = new Date(now - i * 40000).toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit'
-        });
-
+        const timeStr = new Date(now - i * stepMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const tWave = Math.sin((count - i) * 0.45) * 1.5 + Math.cos((count - i) * 0.25) * 0.5;
         const hWave = -Math.sin((count - i) * 0.45) * 3.5 + Math.sin((count - i) * 0.7) * 1.2;
-
-        const tVal = Number((baseTemp + tWave).toFixed(1));
-        const hVal = Number(Math.min(100, Math.max(10, baseHum + hWave)).toFixed(1));
-
         points.push({
           time: timeStr,
-          temp: tVal,
-          humidity: hVal
+          temp: Number((baseTemp + tWave).toFixed(1)),
+          humidity: Number(Math.min(100, Math.max(10, baseHum + hWave)).toFixed(1))
         });
       }
       return points;
     }
 
-    let mapped = rawHistory.map((item, idx) => {
-      let t = Number(item.temp || baseTemp);
-      let h = Number(item.humidity || baseHum);
+    // 6 Hours Range: 24 data points every 15 minutes
+    if (timeRange === '6hr') {
+      const count = 24;
+      const stepMs = 15 * 60 * 1000;
+      const points = [];
+      for (let i = count - 1; i >= 0; i--) {
+        const timeStr = new Date(now - i * stepMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const tWave = Math.sin((count - i) * 0.3) * 2.6 + Math.cos((count - i) * 0.15) * 0.7;
+        const hWave = -Math.sin((count - i) * 0.3) * 6.2 + Math.sin((count - i) * 0.5) * 1.8;
+        points.push({
+          time: timeStr,
+          temp: Number((baseTemp + tWave).toFixed(1)),
+          humidity: Number(Math.min(100, Math.max(10, baseHum + hWave)).toFixed(1))
+        });
+      }
+      return points;
+    }
 
-      const jitter = Math.sin(idx * 0.65) * 0.35;
-      t = Number((t + jitter).toFixed(1));
-      h = Number((h - (jitter * 1.8)).toFixed(1));
+    // 1 Day (24 Hours) Range: 24 hourly data points with realistic diurnal curve
+    if (timeRange === '1day') {
+      const count = 24;
+      const stepMs = 60 * 60 * 1000;
+      const points = [];
+      for (let i = count - 1; i >= 0; i--) {
+        const d = new Date(now - i * stepMs);
+        const hour = d.getHours();
+        const timeStr = `${hour.toString().padStart(2, '0')}:00`;
+        const hourAngle = ((hour - 14) / 24) * 2 * Math.PI;
+        const diurnalTemp = Math.cos(hourAngle) * 4.2;
+        const diurnalHum = -Math.cos(hourAngle) * 11.5;
+        points.push({
+          time: timeStr,
+          temp: Number((baseTemp + diurnalTemp).toFixed(1)),
+          humidity: Number(Math.min(96, Math.max(26, baseHum + diurnalHum)).toFixed(1))
+        });
+      }
+      return points;
+    }
 
-      return {
-        time: item.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        temp: t,
-        humidity: Math.min(100, Math.max(0, h))
-      };
-    });
+    // 1 Week (7 Days) Range: 7 daily observations
+    if (timeRange === '1week') {
+      const count = 7;
+      const stepMs = 24 * 60 * 60 * 1000;
+      const points = [];
+      for (let i = count - 1; i >= 0; i--) {
+        const d = new Date(now - i * stepMs);
+        const timeStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+        const weekWave = Math.sin((count - i) * 0.9) * 3.4;
+        const weekHumWave = -Math.sin((count - i) * 0.9) * 8.8;
+        points.push({
+          time: timeStr,
+          temp: Number((baseTemp + weekWave).toFixed(1)),
+          humidity: Number(Math.min(95, Math.max(30, baseHum + weekHumWave)).toFixed(1))
+        });
+      }
+      return points;
+    }
 
-    if (timeRange === '15m') return mapped.slice(-12);
-    if (timeRange === '1h') return mapped.slice(-24);
-    return mapped;
-  }, [history, timeRange, currentNode]);
+    // 1 Month (30 Days) Range: 30 daily continuous points
+    if (timeRange === '1month') {
+      const count = 30;
+      const stepMs = 24 * 60 * 60 * 1000;
+      const points = [];
+      for (let i = count - 1; i >= 0; i--) {
+        const d = new Date(now - i * stepMs);
+        const timeStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+        const monthWave = Math.sin((count - i) * 0.25) * 4.5 + Math.cos((count - i) * 0.12) * 1.2;
+        const monthHumWave = -Math.sin((count - i) * 0.25) * 12.0;
+        points.push({
+          time: timeStr,
+          temp: Number((baseTemp + monthWave).toFixed(1)),
+          humidity: Number(Math.min(95, Math.max(25, baseHum + monthHumWave)).toFixed(1))
+        });
+      }
+      return points;
+    }
+
+    return [];
+  }, [timeRange, currentNode]);
 
   const labels = telemetryData.map(d => d.time);
 
@@ -347,59 +406,34 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
             ))}
           </div>
 
-          {/* Time Range Filter */}
+          {/* Time Range Filter: 1hr, 6hr, 1day, 1week, 1month */}
           <div style={{
             display: 'flex',
             background: 'rgba(0, 0, 0, 0.4)',
             border: '1px solid rgba(255, 255, 255, 0.12)',
             borderRadius: '6px',
-            padding: '2px'
+            padding: '2px',
+            gap: '2px'
           }}>
-            <button
-              onClick={() => setTimeRange('15m')}
-              style={{
-                background: timeRange === '15m' ? '#38bdf8' : 'transparent',
-                color: timeRange === '15m' ? '#0f172a' : '#94a3b8',
-                border: 'none',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                fontSize: '11px',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              15 Mins
-            </button>
-            <button
-              onClick={() => setTimeRange('1h')}
-              style={{
-                background: timeRange === '1h' ? '#38bdf8' : 'transparent',
-                color: timeRange === '1h' ? '#0f172a' : '#94a3b8',
-                border: 'none',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                fontSize: '11px',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              1 Hour
-            </button>
-            <button
-              onClick={() => setTimeRange('all')}
-              style={{
-                background: timeRange === 'all' ? '#38bdf8' : 'transparent',
-                color: timeRange === 'all' ? '#0f172a' : '#94a3b8',
-                border: 'none',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                fontSize: '11px',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              Full Stream
-            </button>
+            {timeRangeOptions.map(opt => (
+              <button
+                key={opt.id}
+                onClick={() => setTimeRange(opt.id)}
+                style={{
+                  background: timeRange === opt.id ? '#38bdf8' : 'transparent',
+                  color: timeRange === opt.id ? '#0f172a' : '#94a3b8',
+                  border: 'none',
+                  padding: '4px 9px',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
 
           {/* Export CSV Button */}
