@@ -170,7 +170,7 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
       borderWidth: 2.8,
       tension: 0.35,
       fill: isArea,
-      yAxisID: activeTab === 'hum' ? 'yTemp' : 'yHum',
+      yAxisID: 'yHum',
       pointRadius: chartType === 'bar' ? 0 : 4.5,
       pointHoverRadius: 7,
       pointBackgroundColor: '#ffffff',
@@ -181,7 +181,7 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
 
   const chartData = { labels, datasets };
 
-  // Precise Scale Configuration matching reference
+  // Precise Scale Configuration dynamically aligned to active tab
   const scalesConfig = {
     x: {
       grid: {
@@ -193,8 +193,12 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
         color: '#64748b',
         font: { family: 'Outfit', size: 12, weight: '500' }
       }
-    },
-    yTemp: {
+    }
+  };
+
+  if (activeTab === 'dual') {
+    // Dual View: Left is Temp (°C), Right is Humidity (%)
+    scalesConfig.yTemp = {
       type: 'linear',
       position: 'left',
       min: 20,
@@ -215,10 +219,8 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
         color: 'rgba(226, 232, 240, 0.6)',
         borderColor: 'rgba(203, 213, 225, 0.8)'
       }
-    }
-  };
+    };
 
-  if (activeTab === 'dual') {
     scalesConfig.yHum = {
       type: 'linear',
       position: 'right',
@@ -238,6 +240,54 @@ export function GraphDetailsView({ history = [], nodes = {} }) {
       },
       grid: {
         drawOnChartArea: false,
+        borderColor: 'rgba(203, 213, 225, 0.8)'
+      }
+    };
+  } else if (activeTab === 'temp') {
+    // Temperature Tab: Left is Temp (°C)
+    scalesConfig.yTemp = {
+      type: 'linear',
+      position: 'left',
+      min: 20,
+      max: 45,
+      ticks: {
+        color: '#d97706',
+        stepSize: 5,
+        font: { family: 'Outfit', size: 12, weight: '700' },
+        callback: (v) => `${v}°C`
+      },
+      title: {
+        display: true,
+        text: 'Temperature (°C)',
+        color: '#d97706',
+        font: { family: 'Outfit', size: 12, weight: '700' }
+      },
+      grid: {
+        color: 'rgba(226, 232, 240, 0.6)',
+        borderColor: 'rgba(203, 213, 225, 0.8)'
+      }
+    };
+  } else if (activeTab === 'hum') {
+    // Humidity Tab: Left is Humidity (%) on full 20-100% scale
+    scalesConfig.yHum = {
+      type: 'linear',
+      position: 'left',
+      min: 20,
+      max: 100,
+      ticks: {
+        color: '#2563eb',
+        stepSize: 10,
+        font: { family: 'Outfit', size: 12, weight: '700' },
+        callback: (v) => `${v}%`
+      },
+      title: {
+        display: true,
+        text: 'Humidity (%)',
+        color: '#2563eb',
+        font: { family: 'Outfit', size: 12, weight: '700' }
+      },
+      grid: {
+        color: 'rgba(226, 232, 240, 0.6)',
         borderColor: 'rgba(203, 213, 225, 0.8)'
       }
     };
